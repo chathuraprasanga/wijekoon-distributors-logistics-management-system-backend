@@ -8,6 +8,7 @@ import {
     updateSupplierOrderRequestStatusService,
     deleteSupplierOrderRequestService,
     updateSupplierOrderRequestService,
+    getAllConfirmedSupplierOrderRequestsService,
 } from "../services/supplier_order_request_service";
 import { ISupplierOrderRequest } from "../models/supplier_order_request_model";
 
@@ -142,6 +143,15 @@ export const updateSupplierOrderRequestController = async (
         }
 
         res.status(200).json(updatedSupplierOrderRequest);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const getAllConfirmedSupplierOrderRequestsController = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const supplierOrderRequests = await getAllConfirmedSupplierOrderRequestsService();
+        res.status(200).json(supplierOrderRequests);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

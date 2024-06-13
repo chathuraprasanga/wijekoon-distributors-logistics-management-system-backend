@@ -1,5 +1,8 @@
 import { SupplierOrder, ISupplierOrder } from "../models/supplier_order_model";
 import { Supplier } from "../models/supplier_model"; // Import the Supplier model
+import { SupplierOrderRequest } from "../models/supplier_order_request_model";
+import { Vehicle } from "../models/vehicle_model";
+import { Employee } from "../models/employee_model";
 
 export const createSupplierOrderRepo = async (
     supplierOrderData: Partial<ISupplierOrder>
@@ -56,9 +59,29 @@ export const deleteSupplierOrderRepo = async (
 export const getAllSupplierOrdersRepo = async (): Promise<ISupplierOrder[]> => {
     try {
         return await SupplierOrder.find()
-            .populate("supplierOrderRequest")
-            .populate("tripDetails.vehicle")
-            .populate("tripDetails.driver");
+            .populate({
+                path: "supplierOrderRequest",
+                model: "SupplierOrderRequest",
+                populate: [
+                    {
+                        path: "supplier",
+                        model: "Supplier",
+                    },
+                    {
+                        path: "order.product",
+                        model: "Product",
+                    },
+                ],
+            })
+            .populate({
+                path: "tripDetails.vehicle",
+                model: "Vehicle",
+            })
+            .populate({
+                path: "tripDetails.driver",
+                model: "Employee",
+            })
+            .exec();
     } catch (error) {
         throw new Error(error.message);
     }
@@ -69,9 +92,18 @@ export const searchSupplierOrdersByOrderIdRepo = async (
 ): Promise<ISupplierOrder[]> => {
     try {
         return await SupplierOrder.find({ supplierOrderRequest: orderId })
-            .populate("supplierOrderRequest")
-            .populate("tripDetails.vehicle")
-            .populate("tripDetails.driver");
+            .populate({
+                path: "supplierOrderRequest",
+                model: "SupplierOrderRequest",
+            })
+            .populate({
+                path: "tripDetails.vehicle",
+                model: "Vehicle",
+            })
+            .populate({
+                path: "tripDetails.driver",
+                model: "Employee",
+            });
     } catch (error) {
         throw new Error(error.message);
     }

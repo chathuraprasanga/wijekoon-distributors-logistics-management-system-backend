@@ -7,6 +7,7 @@ import {
     getAllUsersService,
     loginUserService,
     getRefreshTokenService,
+    forgotPasswordService,
 } from "../services/user_service";
 
 export const createUserController = async (
@@ -116,6 +117,22 @@ export const getRefreshTokenController = async (
         } else {
             res.status(401).json({ message: "Invalid token" });
         }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const forgotPasswordController = async (req: Request, res: Response) => {
+    try {
+        const email = req.body.email;
+
+        if (!email) {
+            return res.status(400).json({ message: "Email is required" });
+        }
+
+        const updatedUser = await forgotPasswordService(email);
+        console.log(updatedUser);
+        res.status(200).json(updatedUser);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

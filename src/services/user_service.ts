@@ -109,6 +109,8 @@ export const updateUserService = async (
     update: Partial<IUser>
 ): Promise<IUser | null> => {
     try {
+        console.log("UPDATED USER");
+        console.log(userId, update);
         return await updateUser(userId, update);
     } catch (error) {
         throw new Error(`Failed to update user: ${error}`);
@@ -184,6 +186,93 @@ export const getRefreshTokenService = async (oldToken: string) => {
         return [newToken, existingUser];
     } catch (error) {
         throw new Error(`Failed to get Refresh Token: ${error}`);
+    }
+};
+
+export const forgotPasswordService = async (email: string) => {
+    try {
+        console.log("FORGOT PASSWORD");
+        console.log(email);
+        const user = await getUserByEmail(email);
+        console.log(user);
+        if (!user) {
+            throw new Error("User Doesnt exist check email");
+        }
+        const username = user.email;
+        const newPassword = createPassword();
+
+        await sendForgotPasswordEmailToUser(username, newPassword);
+
+        const password = await bcrypt.hash(newPassword, 10);
+        const updateToUser = { password };
+        return await updateUserService(user._id, updateToUser);
+    } catch (error) {
+        throw new Error(`Failed to Send email`);
+    }
+};
+
+const createPassword = () => {
+    const generateRandomCharacter = (charset) => {
+        return charset[Math.floor(Math.random() * charset.length)];
+    };
+
+    const uppercaseLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const lowercaseLetters = "abcdefghijklmnopqrstuvwxyz";
+    const numbers = "0123456789";
+    const allCharacters = uppercaseLetters + lowercaseLetters + numbers;
+
+    let password = "";
+    password += generateRandomCharacter(uppercaseLetters);
+    password += generateRandomCharacter(lowercaseLetters);
+    password += generateRandomCharacter(numbers);
+
+    for (let i = 0; i < 4; i++) {
+        password += generateRandomCharacter(allCharacters);
+    }
+
+    password += "@";
+
+    return password;
+};
+
+const sendForgotPasswordEmailToUser = async (username, password) => {
+    const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+            user: "wijekoondistributor@gmail.com",
+            pass: "hnzz wasj oiho lsrb", // Make sure to replace with your actual password
+        },
+    });
+
+    const mailOptions = {
+        from: "wijekoondistributor@gmail.com",
+        to: username,
+        subject: "Your Account Information",
+        html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <h1 style="font-size: 24px; color: #333; margin-bottom: 15px;">Welcome to Wijekoon Distributors</h1>
+                    <p style="font-size: 16px; color: #666;">Your Password has been Changed.</p>
+                </div>
+                <div style="line-height: 1.6; color: #333;">
+                    <p>Here are your new login details:</p>
+                    <div style="margin-top: 40px; text-align: center;">
+                        <strong style="font-size: 20px; color: #007bff; display: block; margin-bottom: 10px;">Username:</strong> ${username}<br>
+                        <span style="font-size: 14px; color: #999;">Password:</span> ${password}
+                    </div>
+                </div>
+                <div style="text-align: center; margin-top: 30px; color: #777;">
+                    <p>Best regards,</p>
+                    <strong style="font-size: 18px;">Wijekoon Distributors</strong>
+                </div>
+            </div>
+        `,
+    };
+    try {
+        await transporter.sendMail(mailOptions);
+        console.log("Message sent to: %s", username);
+    } catch (error) {
+        console.error("Error sending email: %s", error);
     }
 };
 // Add other necessary functions based on your application's needs

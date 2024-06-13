@@ -29,6 +29,7 @@ import {
 import {
     createSupplierOrderRequestController,
     deleteSupplierOrderRequestController,
+    getAllConfirmedSupplierOrderRequestsController,
     getAllSupplierOrderRequestsController,
     getSupplierOrderRequestByIdController,
     updateSupplierOrderRequestController,
@@ -57,6 +58,7 @@ import {
 } from "../controllers/customer_ontroller";
 import {
     createUserController,
+    forgotPasswordController,
     getAllUsersController,
     loginUserController,
 } from "../controllers/user_controller";
@@ -156,6 +158,7 @@ export const routes = (app) => {
     app.delete("/product/:id", deleteProductController);
 
     app.get("/supplierOrderRequests", getAllSupplierOrderRequestsController);
+    app.get("/supplierOrderRequests/confirmed", getAllConfirmedSupplierOrderRequestsController);
     app.post("/supplierOrderRequest", createSupplierOrderRequestController);
     app.put(
         "/supplierOrderRequest/status/:id",
@@ -215,7 +218,9 @@ export const routes = (app) => {
     app.get("/supplierOrders", getAllSupplierOrdersController);
     app.post("/user", createUserController);
     app.get("/users", authenticateToken, getAllUsersController);
+
     app.post("/login", loginUserController);
+    app.post("/forgot-password", forgotPasswordController);
 
     // app.get("*", getWelcomeMessage);
 };

@@ -52,6 +52,27 @@ export const getAllSupplierOrderRequests = async (): Promise<
     }
 };
 
+export const getAllConfirmedSupplierOrderRequestsRepo = async (): Promise<
+    ISupplierOrderRequest[]
+> => {
+    try {
+        const allSupplierOrderRequests = await SupplierOrderRequest.find({
+            status: "CONFIRMED",
+        })
+            .populate({
+                path: "supplier",
+                model: "Supplier",
+            })
+            .populate({
+                path: "order.product",
+                model: "Product",
+            });
+        return allSupplierOrderRequests;
+    } catch (error) {
+        throw new Error(error.message); // It's good practice to include.message to get the actual error message
+    }
+};
+
 export const searchSupplierOrderRequestsByOrderId = async (
     orderId: string
 ): Promise<ISupplierOrderRequest[]> => {

@@ -8,6 +8,7 @@ import {
     deleteSupplierOrderRequest,
     getLastIndexedOrderIdSupplierRepo,
     updateSupplierOrderRequestRepo,
+    getAllConfirmedSupplierOrderRequestsRepo,
 } from "../data-access/supplier_order_request_repo";
 import { ISupplierOrderRequest } from "../models/supplier_order_request_model";
 
@@ -121,5 +122,15 @@ export const updateSupplierOrderRequestService = async (
         throw new Error(
             `Failed to update supplier order request: ${error.message}`
         );
+    }
+};
+
+export const getAllConfirmedSupplierOrderRequestsService = async (): Promise<
+    ISupplierOrderRequest[]
+> => {
+    try {
+        return await getAllConfirmedSupplierOrderRequestsRepo();
+    } catch (error) {
+        throw new Error(error.message);
     }
 };
