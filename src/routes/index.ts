@@ -18,7 +18,7 @@ import {
     searchJobRolesByNameController,
     deleteJobRoleController,
 } from "../controllers/job_role_controller";
-import { getAllTrips } from "../controllers/trip_controller";
+import { getAllCompletedTripsController, getAllTrips, updateTrip } from "../controllers/trip_controller";
 import {
     createProductController,
     deleteProductController,
@@ -105,6 +105,7 @@ import {
     getAllActiveVehicleLorriesController,
     updateVehicleController,
 } from "../controllers/vehicle_controller";
+import { createExpenses, getAllExpenses, updateExpenses } from "../controllers/expenses_controller";
 
 export const routes = (app) => {
     app.get("/", getWelcomeMessage);
@@ -158,7 +159,10 @@ export const routes = (app) => {
     app.delete("/product/:id", deleteProductController);
 
     app.get("/supplierOrderRequests", getAllSupplierOrderRequestsController);
-    app.get("/supplierOrderRequests/confirmed", getAllConfirmedSupplierOrderRequestsController);
+    app.get(
+        "/supplierOrderRequests/confirmed",
+        getAllConfirmedSupplierOrderRequestsController
+    );
     app.post("/supplierOrderRequest", createSupplierOrderRequestController);
     app.put(
         "/supplierOrderRequest/status/:id",
@@ -207,12 +211,25 @@ export const routes = (app) => {
     app.post("/warehouse", createWarehouseController);
     app.delete("/warehouse/:id", deleteWarehouseController);
     app.put("/warehouse/:id", updateWarehouseController);
+
     app.get("/jobRoles", getJobRolesController);
     app.post("/jobRole", createJobRoleController);
     app.put("/jobRole/:id", updateJobRoleController);
     app.delete("/jobRole/:id", deleteJobRoleController);
     app.get("/jobRole", searchJobRolesByNameController);
+
     app.get("/trips", getAllTrips);
+    app.get("/trips/completed", getAllCompletedTripsController);
+    app.put("/trip/:id", updateTrip);
+
+    app.get("/trips", getAllTrips);
+    app.get("/trips/completed", getAllCompletedTripsController);
+    app.put("/trip/:id", updateTrip);
+
+    app.get("/expenses", getAllExpenses);
+    app.post("/expense", createExpenses);
+    app.put("/expense/:id", updateExpenses);
+
     app.get("/products", getAllProductsController);
     app.get("/supplierOrderRequests", getAllSupplierOrderRequestsController);
     app.get("/supplierOrders", getAllSupplierOrdersController);

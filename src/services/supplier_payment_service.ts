@@ -8,6 +8,7 @@ import {
     searchSupplierPaymentsBySupplierName,
 } from "../data-access/supplier_payment_repo";
 import { IsupplierPayment } from "../models/supplier_payment_model";
+import { updateSupplierOrderService } from "./supplier_order_service";
 
 // Create a new supplier payment
 export const createSupplierPaymentService = async (
@@ -34,10 +35,32 @@ export const getSupplierPaymentByIdService = async (id: string) => {
 // Update a supplier payment by ID
 export const updateSupplierPaymentByIdService = async (
     id: string,
-    updateData: Partial<IsupplierPayment>
+    updateData: Partial<any>
 ) => {
     try {
-        return await updateSupplierPaymentById(id, updateData);
+        // update supplier order
+        const updateSupplierOrderId = updateData.supplierOrder._id;
+        const updateSupplierOrder = {
+            status: updateData.status,
+            paymentDetails: {
+                outstanding: updateData.outstanding,
+                payments: updateData.payments,
+            },
+        };
+        const updatedSupplierOrder = await updateSupplierOrderService(
+            updateSupplierOrderId,
+            updateSupplierOrder
+        );
+        if (!updatedSupplierOrder) {
+            throw new Error("Cannot be updated supplier order");
+        }
+
+        const updateToSupplierPaymentData = {
+            outstanding: updateData.outstanding,
+            payments: updateData.payments,
+            status: updateData.status,
+        };
+        return await updateSupplierPaymentById(id, updateToSupplierPaymentData);
     } catch (error) {
         throw new Error(
             `Error updating supplier payment by ID: ${error.message}`

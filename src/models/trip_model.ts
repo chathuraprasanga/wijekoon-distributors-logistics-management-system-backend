@@ -91,7 +91,7 @@ const TripSchema: Schema = new Schema<ITrip>(
         },
         status: {
             type: Schema.Types.String,
-            enum: ["ACTIVE", "DEACTIVE"],
+            enum: ["ACTIVE", "DEACTIVE","COMPLETED"],
         },
     },
     {

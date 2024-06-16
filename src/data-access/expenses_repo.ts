@@ -26,7 +26,30 @@ export const ExpensesRepository = {
     },
 
     async getAllExpenses(): Promise<IExpenses[]> {
-        const expenses = await Expenses.find();
+        const expenses = await Expenses.find()
+            .populate({
+                path: "tripId",
+                model: "Trip", // Path to the first level of nesting
+                populate: [
+                    {
+                        path: "driver", // Nested path under tripId
+                        model: "Employee",
+                    },
+                    {
+                        path: "supplierOrder", // Another nested path under tripId
+                        model: "SupplierOrder",
+                        populate: {
+                            path: "supplierOrderRequest",
+                            model: "SupplierOrderRequest",
+                        },
+                    },
+                    {
+                        path: "vehicle", // Another nested path under tripId
+                        model: "Vehicle",
+                    },
+                ],
+            })
+            .exec(); // Execute the query
         return expenses;
     },
 

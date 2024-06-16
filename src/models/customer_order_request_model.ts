@@ -50,7 +50,7 @@ const CustomerOrderRequestSchema: Schema = new Schema<ICustomerOrderRequest>(
         },
         expectedDate: {
             type: Schema.Types.String,
-            required: [true, "Expected date is required"],
+            // required: [true, "Expected date is required"],
         },
         order: [
             {
@@ -108,7 +108,7 @@ const CustomerOrderRequestSchema: Schema = new Schema<ICustomerOrderRequest>(
         },
         status: {
             type: Schema.Types.String,
-            enum: ["PENDING", "CONFIRMED", "CANCELLED", "COMPLETED"],
+            enum: ["PENDING", "CONFIRMED", "CANCELLED", "COMPLETED", "WAREHOUSE"],
             required: [true, "Status is required"],
         }
     },

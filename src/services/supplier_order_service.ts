@@ -110,10 +110,20 @@ export const getSupplierOrderByIdService = async (
 
 export const updateSupplierOrderService = async (
     id: string,
-    updateData: Partial<ISupplierOrder>
-): Promise<ISupplierOrder | null> => {
+    updateData: Partial<any>
+): Promise<any | null> => {
     try {
-        return await updateSupplierOrderRepo(id, updateData);
+        console.log("UPDATE SUPPLIER ORDER");
+        console.log(id);
+        console.log(updateData);
+
+        const order = getSupplierOrderByIdService(id);
+        const payload = {
+            ...order,
+            status: updateData.status,
+            paymentDetails: updateData.paymentDetails,
+        };
+        return await updateSupplierOrderRepo(id, payload);
     } catch (error) {
         throw new Error(`Error updating supplier order: ${error.message}`);
     }

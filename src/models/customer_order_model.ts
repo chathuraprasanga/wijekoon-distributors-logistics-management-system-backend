@@ -1,7 +1,11 @@
 import { Document, model, Schema } from "mongoose";
-import { CustomerOrderRequest, ICustomerOrderRequest } from "./customer_order_request_model";
+import {
+    CustomerOrderRequest,
+    ICustomerOrderRequest,
+} from "./customer_order_request_model";
 import { errorEnum } from "../util/error_utils";
 import { IWarehouse, Warehouse } from "./warehouse_model";
+import { Customer, ICustomer } from "./customer_model";
 
 export interface ICustomerOrder extends Document {
     orderId: string;
@@ -12,6 +16,7 @@ export interface ICustomerOrder extends Document {
     netTotal: number;
     status: "PAID" | "NOT PAID";
     warehouse: IWarehouse;
+    customer: ICustomer;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -26,13 +31,15 @@ const CustomerOrderSchema: Schema = new Schema<ICustomerOrder>(
         customerOrderRequest: {
             type: Schema.Types.ObjectId,
             ref: "customer_order_requests",
-            required: [true, "Customer order request is required"],
+            // required: [true, "Customer order request is required"],
             validate: {
                 async validator(customerOrderRequest) {
                     try {
-                        const count = await CustomerOrderRequest.countDocuments({
-                            _id: customerOrderRequest,
-                        });
+                        const count = await CustomerOrderRequest.countDocuments(
+                            {
+                                _id: customerOrderRequest,
+                            }
+                        );
                         return count === 1;
                     } catch (e) {
                         return false;
@@ -78,7 +85,24 @@ const CustomerOrderSchema: Schema = new Schema<ICustomerOrder>(
                 },
                 message: errorEnum.INVALID_WAREHOUSE,
             },
-        }
+        },
+        customer: {
+            type: Schema.Types.ObjectId,
+            ref: "customers",
+            validate: {
+                async validator(customers) {
+                    try {
+                        const count = await Customer.countDocuments({
+                            _id: customers,
+                        });
+                        return count === 1;
+                    } catch (e) {
+                        return false;
+                    }
+                },
+                message: errorEnum.INVALID_CUSTOMER,
+            },
+        },
     },
     {
         timestamps: true,
@@ -86,4 +110,7 @@ const CustomerOrderSchema: Schema = new Schema<ICustomerOrder>(
     }
 );
 
-export const CustomerOrder = model<ICustomerOrder>("CustomerOrder", CustomerOrderSchema);
+export const CustomerOrder = model<ICustomerOrder>(
+    "CustomerOrder",
+    CustomerOrderSchema
+);

@@ -1,4 +1,4 @@
-import path from "path";
+import mongoose from "mongoose";
 import { Warehouse, IWarehouse } from "../models/warehouse_model";
 
 export const createWarehouseRepo = async (
@@ -68,26 +68,82 @@ export const findWarehousesByCityRepo = async (
 
 export const updateWarehouseStockRepo = async (
     warehouseId: string,
-    stockUpdates: { productId: string; quantity: number }[]
+    stockUpdates: { product: string; quantity: number | string }[],
+    type: string
 ): Promise<IWarehouse | null> => {
     try {
+        console.log("update data:", warehouseId, stockUpdates, type);
+
+        // Fetch the warehouse details from the database
         const warehouse = await Warehouse.findById(warehouseId).exec();
         if (!warehouse) {
+            console.log("Warehouse not found");
             return null;
         }
 
-        stockUpdates.forEach((update) => {
-            const stockItem = warehouse.stockDetails.find(
-                (item) => item.product.toString() === update.productId
+        console.log("Initial Warehouse Stock Details:", warehouse.stockDetails);
+
+        // Process each stock update
+        stockUpdates.forEach((update, index) => {
+            console.log(`Processing update #${index + 1}:`, update);
+
+            if (!update.product || typeof update.quantity !== "number") {
+                console.error(
+                    `Invalid update structure for update #${index + 1}:`,
+                    update
+                );
+                return;
+            }
+
+            // Convert the productId string to an ObjectId before searching
+            const objectIdUpdateProduct = new mongoose.Types.ObjectId(update.product);
+
+            // Find the stock item by product ID
+            let stockItem = warehouse.stockDetails.find((item) =>
+                item.product.equals(objectIdUpdateProduct)
             );
+
             if (stockItem) {
-                stockItem.quantity += update.quantity;
+                console.log("Found stock item:", stockItem);
+
+                if (type === "increment") {
+                    stockItem.quantity += parseInt(
+                        update.quantity.toString(),
+                        10
+                    );
+                    console.log("Incremented stock item:", stockItem);
+                } else if (type === "decrement") {
+                    stockItem.quantity -= parseInt(
+                        update.quantity.toString(),
+                        10
+                    );
+                    console.log("Decrement stock item:", stockItem);
+                }
+            } else {
+                console.log(
+                    "Adding new product to warehouse stock details:",
+                    update.product
+                );
+
+                // Add the new product if it doesn't already exist in the stock details
+                warehouse.stockDetails.push({
+                    product: objectIdUpdateProduct,
+                    quantity: parseInt(update.quantity.toString(), 10),
+                });
+                console.log(
+                    "Added new product to warehouse stock details:",
+                    update.product
+                );
             }
         });
 
+        console.log("Updated Warehouse Stock Details:", warehouse.stockDetails);
+
+        // Save the updated warehouse details back to the database
         await warehouse.save();
         return warehouse;
     } catch (error) {
+        console.error("Error updating warehouse stock:", error);
         throw new Error(`Failed to update warehouse stock: ${error}`);
     }
 };

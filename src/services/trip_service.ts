@@ -1,5 +1,6 @@
 import { ITrip } from "../models/trip_model";
 import * as TripRepository from "../data-access/trip_repo";
+import { getAllCompletedTripsRepo } from "../data-access/trip_repo";
 
 export const createTrip = async (trip: any): Promise<ITrip> => {
     try {
@@ -21,7 +22,7 @@ export const getTripById = async (id: string): Promise<ITrip | null> => {
 
 export const updateTrip = async (
     id: string,
-    trip: ITrip
+    trip: any
 ): Promise<ITrip | null> => {
     try {
         return await TripRepository.updateTrip(id, trip);
@@ -51,6 +52,14 @@ export const searchTripByTripId = async (
 export const getAllTrips = async (): Promise<ITrip[]> => {
     try {
         return await TripRepository.getAllTrips();
+    } catch (error) {
+        throw new Error("Could not get all trips");
+    }
+};
+
+export const getAllCompletedTripsService = async (): Promise<ITrip[]> => {
+    try {
+        return await getAllCompletedTripsRepo();
     } catch (error) {
         throw new Error("Could not get all trips");
     }

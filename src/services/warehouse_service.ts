@@ -9,6 +9,7 @@ import {
     getLastIndexWarehouseRepo,
 } from "../data-access/warehous_repo";
 import { IWarehouse } from "../models/warehouse_model";
+import { updateTrip } from "./trip_service";
 
 export const createWarehouseService = async (
     data: any
@@ -52,10 +53,39 @@ export const findAllWarehousesService = async (): Promise<IWarehouse[]> => {
 
 export const updateWarehouseService = async (
     id: string,
-    data: Partial<IWarehouse>
+    data: Partial<any>
 ): Promise<IWarehouse | null> => {
     try {
-        return await updateWarehouseRepo(id, data);
+        console.log("UPDATE WAREHOUSE");
+        console.log(id);
+        console.log(data);
+
+        // Correctly navigate to supplierOrderRequest
+        const supplierOrderRequest =
+            data.trip?.supplierOrder?.supplierOrderRequest;
+        if (!supplierOrderRequest) {
+            throw new Error("Supplier order request is missing");
+        }
+
+        const updateStock = data.trip.supplierOrder.supplierOrderRequest.order.map((item) => ({
+            product: item.product._id,
+            quantity: parseInt(item.quantity),
+        }));
+        const type = data.type;
+
+        const updatedWarehouse = await updateWarehouseStockService(
+            id, // Ensure this matches the expected parameter name
+            updateStock,
+            type
+        );
+
+        // Update Trip
+        const tripId = data.trip?._id; // Safely access trip._id
+        const status = { status: "COMPLETED" };
+
+        await updateTrip(tripId, status);
+
+        return updatedWarehouse;
     } catch (error) {
         throw new Error(`Failed to update warehouse: ${error}`);
     }
@@ -83,10 +113,14 @@ export const findWarehousesByCityService = async (
 
 export const updateWarehouseStockService = async (
     warehouseId: string,
-    stockUpdates: { productId: string; quantity: number }[]
+    stockUpdates: any[],
+    type: string
 ): Promise<IWarehouse | null> => {
     try {
-        return await updateWarehouseStockRepo(warehouseId, stockUpdates);
+        console.log("UPDATE STOCK DETAILS");
+        console.log(warehouseId);
+        console.log(stockUpdates);
+        return await updateWarehouseStockRepo(warehouseId, stockUpdates, type);
     } catch (error) {
         throw new Error(`Failed to update warehouse stock: ${error}`);
     }

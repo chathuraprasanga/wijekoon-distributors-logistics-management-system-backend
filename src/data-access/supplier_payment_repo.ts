@@ -23,18 +23,6 @@ export const updateSupplierPaymentById = async (
     return await SupplierPayment.findByIdAndUpdate(id, updateData, {
         new: true,
     })
-        .populate("supplierOrder")
-        .exec();
-};
-
-// Delete a supplier payment by ID
-export const deleteSupplierPaymentById = async (id: string) => {
-    return await SupplierPayment.findByIdAndDelete(id).exec();
-};
-
-// Get all supplier payments
-export const getAllSupplierPayments = async () => {
-    return await SupplierPayment.find()
     .populate({
         path: "supplierOrder",
         model: "SupplierOrder",
@@ -50,6 +38,11 @@ export const getAllSupplierPayments = async () => {
                     {
                         path: "order.product",
                         model: "Product",
+                        populate: {
+                            path: "order.product.supplier",
+                            model: "Supplier",
+                            strictPopulate: false,
+                        },
                     },
                 ],
             },
@@ -57,6 +50,48 @@ export const getAllSupplierPayments = async () => {
         strictPopulate: false,
     })
     .exec();
+};
+
+// Delete a supplier payment by ID
+export const deleteSupplierPaymentById = async (id: string) => {
+    return await SupplierPayment.findByIdAndDelete(id).exec();
+};
+
+export const getAllSupplierPayments = async () => {
+    try {
+        return await SupplierPayment.find()
+            .populate({
+                path: "supplierOrder",
+                model: "SupplierOrder",
+                populate: [
+                    {
+                        path: "supplierOrderRequest",
+                        model: "SupplierOrderRequest",
+                        populate: [
+                            {
+                                path: "supplier",
+                                model: "Supplier",
+                            },
+                            {
+                                path: "order.product",
+                                model: "Product",
+                                populate: {
+                                    path: "order.product.supplier",
+                                    model: "Supplier",
+                                    strictPopulate: false,
+                                },
+                            },
+                        ],
+                    },
+                ],
+                strictPopulate: false,
+            })
+            .exec();
+    } catch (error) {
+        console.error("Failed to fetch supplier payments:", error);
+        // Handle the error appropriately, e.g., throw it again, return a default value, etc.
+        throw error;
+    }
 };
 
 // Search supplier payments by supplier order ID

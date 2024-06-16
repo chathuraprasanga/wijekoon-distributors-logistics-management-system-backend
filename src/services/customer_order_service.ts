@@ -3,124 +3,147 @@ import {
     createCustomerOrder,
     getCustomerOrderByOrderId,
     getAllCustomerOrders,
-
     searchCustomerOrders,
     updateCustomerOrderStatusRepo,
 } from "../data-access/customer_order_repo";
 import { ICustomerOrder } from "../models/customer_order_model";
 import { createChequeService } from "./cheque_service";
 import {
+    createCustomerOrderRequestService,
     getCustomerOrderRequestByIdService,
     updateCustomerOrderRequestService,
 } from "./customer_order_request_service";
 import { createPaymentService } from "./customer_payment_service";
 import { getCustomerByIdService } from "./cutomer_service";
+import { updateWarehouseStockService } from "./warehouse_service";
 
-// Create a new customer order
 export const addCustomerOrder = async (
     customerOrderData: any
 ): Promise<any> => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
     try {
-        const session = await mongoose.startSession();
-        session.startTransaction();
-        try {
-            // uoppdate customer order request
-            const customerOrderRequestData: any = {};
+        const customerOrderRequestData: any = {
+            subTotal: customerOrderData.subTotal,
+            totalDiscount: customerOrderData.totalDiscount,
+            totalTax: customerOrderData.totalTax,
+            netTotal: customerOrderData.netTotal,
+            order: customerOrderData.order,
+        };
+
+        let updatedRequest;
+
+        if (!customerOrderData.warehouse) {
             customerOrderRequestData.id =
                 customerOrderData.customerOrderRequest;
-            customerOrderRequestData.order = customerOrderData.order;
-            customerOrderRequestData.subTotal = customerOrderData.subTotal;
-            customerOrderRequestData.totalDiscount =
-                customerOrderData.totalDiscount;
-            customerOrderRequestData.totalTax = customerOrderData.totalTax;
-            customerOrderRequestData.netTotal = customerOrderData.netTotal;
             customerOrderRequestData.status = "COMPLETED";
+            console.log(
+                "Updating Customer Order Request",
+                customerOrderRequestData
+            );
 
-            console.log("CREATED TO CUSTOMER ORDER REQUEST");
-            console.log(customerOrderRequestData);
-
-            const updatedRequest = await updateCustomerOrderRequestService(
+            updatedRequest = await updateCustomerOrderRequestService(
                 customerOrderRequestData.id,
                 customerOrderRequestData
             );
             if (!updatedRequest) {
                 throw new Error("Customer Order Request Cannot be Updated");
             }
-
-            // create customer order
-            const customerOrder: any = {};
-            customerOrder.orderId = customerOrderData.orderId;
-            customerOrder.customerOrderRequest =
-                customerOrderData.customerOrderRequest;
-            customerOrder.subTotal = customerOrderData.subTotal;
-            customerOrder.totalDiscount = customerOrderData.totalDiscount;
-            customerOrder.totalTax = customerOrderData.totalTax;
-            customerOrder.netTotal = customerOrderData.netTotal;
-            customerOrder.status = customerOrderData.status;
-
-            const createdCustomerOrder = await createCustomerOrder(
-                customerOrder
+        } else {
+            customerOrderRequestData.status = "WAREHOUSE";
+            customerOrderRequestData.customer = customerOrderData.customer;
+            customerOrderRequestData.warehouse = customerOrderData.warehouse;
+            customerOrderRequestData.expectedDate = null;
+            console.log(
+                "Creating Customer Order Request",
+                customerOrderRequestData
             );
 
-            if (!createdCustomerOrder) {
-                throw new Error("Customer Order Cannot be Created");
+            const updateStock = customerOrderData.order.map((item) => ({
+                product: item.product,
+                quantity: parseInt(item.quantity),
+            }));
+            await updateWarehouseStockService(
+                customerOrderData.warehouse,
+                updateStock,
+                "decrement"
+            );
+
+            updatedRequest = await createCustomerOrderRequestService(
+                customerOrderRequestData
+            );
+            if (!updatedRequest) {
+                throw new Error("Customer Order Request Cannot be Created");
             }
+        }
 
-            const paymentData: any = {};
-            paymentData.customerOrder = createdCustomerOrder._id;
-            paymentData.totalPayable =
-                customerOrderData.paymentData.totalPayable;
-            paymentData.paymentDetails =
-                customerOrderData.paymentData.paymentDetails;
-            paymentData.outstanding = customerOrderData.paymentData.outstanding;
-            paymentData.status = customerOrderData.paymentData.status;
+        const customerOrder: any = {
+            orderId: customerOrderData.orderId || updatedRequest.orderId,
+            customerOrderRequest: updatedRequest._id,
+            subTotal: customerOrderData.subTotal,
+            totalDiscount: customerOrderData.totalDiscount,
+            totalTax: customerOrderData.totalTax,
+            netTotal: customerOrderData.netTotal,
+            status: customerOrderData.status,
+        };
 
-            const createdPayment = await createPaymentService(paymentData);
-            if (!createdPayment) {
-                throw new Error("Customer Payment cannot be created");
-            }
+        const createdCustomerOrder = await createCustomerOrder(customerOrder);
+        if (!createdCustomerOrder) {
+            throw new Error("Customer Order Cannot be Created");
+        }
 
+        const paymentData: any = {
+            customerOrder: createdCustomerOrder._id,
+            totalPayable: customerOrderData.paymentData.totalPayable,
+            paymentDetails: customerOrderData.paymentData.paymentDetails,
+            outstanding: customerOrderData.paymentData.outstanding,
+            status: customerOrderData.paymentData.status,
+        };
+
+        const createdPayment = await createPaymentService(paymentData);
+        if (!createdPayment) {
+            throw new Error("Customer Payment cannot be created");
+        }
+
+        let customer;
+        if (customerOrderData.customerOrderRequest) {
             const customerOrderRequest =
                 await getCustomerOrderRequestByIdService(
                     customerOrderData.customerOrderRequest
                 );
-            console.log(customerOrderData);
-            console.log(customerOrderData.customerOrderRequest);
-            console.log("CUSTOMER ORDER REQUEST");
-            console.log(customerOrderRequest);
-            const customer = await getCustomerByIdService(
+            customer = await getCustomerByIdService(
                 customerOrderRequest.customer
             );
-            console.log("CUSTOMER");
-            console.log(customer);
+        } else {
+            customer = await getCustomerByIdService(customerOrderData.customer);
+        }
 
-            const cheques = customerOrderData.paymentData.paymentDetails.filter(
-                (data) => data.method === "Cheque"
-            );
-            const updatedCheques = cheques.map((cheque) => ({
+        const cheques = customerOrderData.paymentData.paymentDetails
+            .filter((data) => data.method === "Cheque")
+            .map((cheque) => ({
                 ...cheque,
                 customer: customer._id,
                 order: createdCustomerOrder._id,
                 status: "PENDING",
             }));
 
-            for (let i = 0; i < updatedCheques.length; i++) {
-                await createChequeService(updatedCheques[i]);
-            }
-
-            const payload = {
-                updatedRequest,
-                createdCustomerOrder,
-                createdPayment,
-            };
-            return payload;
-        } catch (error) {
-            await session.abortTransaction();
-            session.endSession();
-            throw new Error(error);
+        for (const cheque of cheques) {
+            await createChequeService(cheque);
         }
+
+        await session.commitTransaction();
+        session.endSession();
+
+        return {
+            updatedRequest,
+            createdCustomerOrder,
+            createdPayment,
+        };
     } catch (error) {
-        throw new Error(error);
+        await session.abortTransaction();
+        session.endSession();
+        throw new Error(error.message || error);
     }
 };
 

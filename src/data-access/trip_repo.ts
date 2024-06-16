@@ -49,7 +49,59 @@ export const searchTripByTripId = async (
 
 export const getAllTrips = async (): Promise<ITrip[]> => {
     try {
-        return await Trip.find();
+        return await Trip.find()
+            .populate({
+                path: "driver",
+                model: "Employee",
+            })
+            .populate({
+                path: "vehicle",
+                model: "Vehicle",
+            })
+            .populate({
+                path: "supplierOrder",
+                model: "SupplierOrder",
+                populate: {
+                    // Correctly wrapped in an options object
+                    path: "supplierOrderRequest",
+                    model: "SupplierOrderRequest",
+                    populate: {
+                        path: "order.product",
+                        model: "Product",
+                    },
+                },
+            })
+            .exec();
+    } catch (error) {
+        throw new Error("Could not get all trips");
+    }
+};
+
+export const getAllCompletedTripsRepo = async (): Promise<ITrip[]> => {
+    try {
+        return await Trip.find({ status: "COMPLETED" })
+            .populate({
+                path: "driver",
+                model: "Employee",
+            })
+            .populate({
+                path: "vehicle",
+                model: "Vehicle",
+            })
+            .populate({
+                path: "supplierOrder",
+                model: "SupplierOrder",
+                populate: {
+                    // Correctly wrapped in an options object
+                    path: "supplierOrderRequest",
+                    model: "SupplierOrderRequest",
+                    populate: {
+                        path: "order.product",
+                        model: "Product",
+                    },
+                },
+            })
+            .exec();
     } catch (error) {
         throw new Error("Could not get all trips");
     }

@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import * as TripService from "../services/trip_service";
+import { getAllCompletedTripsService } from "../services/trip_service";
 
 export const createTrip = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -68,6 +69,15 @@ export const getAllTrips = async (req: Request, res: Response): Promise<void> =>
     try {
         const trips = await TripService.getAllTrips();
         res.json(trips);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const getAllCompletedTripsController = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const trips = await getAllCompletedTripsService();
+        res.status(200).json(trips);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

@@ -20,9 +20,29 @@ export const getSupplierOrderByIdRepo = async (
 ): Promise<ISupplierOrder | null> => {
     try {
         return await SupplierOrder.findById(id)
-            .populate("supplierOrderRequest")
-            .populate("tripDetails.vehicle")
-            .populate("tripDetails.driver");
+        .populate({
+            path: "supplierOrderRequest",
+            model: "SupplierOrderRequest",
+            populate: [
+                {
+                    path: "supplier",
+                    model: "Supplier",
+                },
+                {
+                    path: "order.product",
+                    model: "Product",
+                },
+            ],
+        })
+        .populate({
+            path: "tripDetails.vehicle",
+            model: "Vehicle",
+        })
+        .populate({
+            path: "tripDetails.driver",
+            model: "Employee",
+        })
+        .exec();
     } catch (error) {
         throw new Error(error.message);
     }
@@ -36,9 +56,29 @@ export const updateSupplierOrderRepo = async (
         return await SupplierOrder.findByIdAndUpdate(id, updateData, {
             new: true,
         })
-            .populate("supplierOrderRequest")
-            .populate("tripDetails.vehicle")
-            .populate("tripDetails.driver");
+        .populate({
+            path: "supplierOrderRequest",
+            model: "SupplierOrderRequest",
+            populate: [
+                {
+                    path: "supplier",
+                    model: "Supplier",
+                },
+                {
+                    path: "order.product",
+                    model: "Product",
+                },
+            ],
+        })
+        .populate({
+            path: "tripDetails.vehicle",
+            model: "Vehicle",
+        })
+        .populate({
+            path: "tripDetails.driver",
+            model: "Employee",
+        })
+        .exec();
     } catch (error) {
         throw new Error(error.message);
     }

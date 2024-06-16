@@ -31,7 +31,7 @@ export const createCustomerOrderRequestService = async (
     }
 };
 
-const generateOrderId = async (lastOrderId: string) => {
+export const generateOrderId = async (lastOrderId: string) => {
     if (!lastOrderId) {
         return "WDC-001";
     }
