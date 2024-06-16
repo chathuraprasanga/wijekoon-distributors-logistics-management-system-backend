@@ -18,7 +18,11 @@ import {
     searchJobRolesByNameController,
     deleteJobRoleController,
 } from "../controllers/job_role_controller";
-import { getAllCompletedTripsController, getAllTrips, updateTrip } from "../controllers/trip_controller";
+import {
+    getAllCompletedTripsController,
+    getAllTrips,
+    updateTrip,
+} from "../controllers/trip_controller";
 import {
     createProductController,
     deleteProductController,
@@ -105,10 +109,17 @@ import {
     getAllActiveVehicleLorriesController,
     updateVehicleController,
 } from "../controllers/vehicle_controller";
-import { createExpenses, getAllExpenses, updateExpenses } from "../controllers/expenses_controller";
+import {
+    createExpenses,
+    getAllExpenses,
+    updateExpenses,
+} from "../controllers/expenses_controller";
+import { getSummaryDetailsController } from "../controllers/dashboard_controller";
 
 export const routes = (app) => {
     app.get("/", getWelcomeMessage);
+
+    app.get("/summary-details", getSummaryDetailsController);
 
     // employee routing
     app.post("/customer", createCustomerController);
