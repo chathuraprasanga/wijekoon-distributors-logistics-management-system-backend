@@ -10,6 +10,7 @@ import {
     countSuppliers,
     countVehicles,
     findWarehousesWithStockDetails,
+    getMonthlyNetTotalByStatus,
     getTotalOutstandingAmount,
     getTotalOutstandingAmountForSuppliers,
 } from "../data-access/Dashboard_repo";
@@ -33,6 +34,7 @@ export const getSummaryDetailsService = async () => {
     const supplierOrderRequests = await countSupplierOrderRequests(); // const vehiclesCount =...;
     const supplierOrders = await countSupplierOrders(); // const vehiclesCount =...;
     const warehouses = await findWarehousesWithStockDetails();
+    const monthlyNetTotal = await getMonthlyNetTotalByStatus();
 
     // Create the payload with the calculated revenue
     const payload = {
@@ -49,6 +51,7 @@ export const getSummaryDetailsService = async () => {
         supplierOrderRequests: supplierOrderRequests,
         supplierOrders: supplierOrders,
         warehouseDetails: warehouses,
+        monthlyNetTotal: monthlyNetTotal,
     };
 
     return payload;

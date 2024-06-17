@@ -171,13 +171,164 @@ export const countSupplierOrders = async (): Promise<number> => {
 
 // Assuming Warehouse is imported or defined elsewhere in your project
 export const findWarehousesWithStockDetails = async (): Promise<any[]> => {
-    const warehouses = await Warehouse.find({})
-        .select("warehouseId city stockDetails")
-        .populate({
-            path: "stockDetails.product",
-            model: "Product",
-            select: "_id code  name "
+    try {
+        const results = await Warehouse.aggregate([
+            {
+                $unwind: "$stockDetails", // Deconstructs the stockDetails array
+            },
+            {
+                $group: {
+                    _id: "$stockDetails.product", // Group by product ID
+                    totalQuantity: { $sum: "$stockDetails.quantity" }, // Sum the quantities
+                },
+            },
+            {
+                $lookup: {
+                    from: "products", // The products collection
+                    localField: "_id", // The product ID in the stockDetails
+                    foreignField: "_id", // The product ID in the products collection
+                    as: "productDetails", // Alias for the joined data
+                },
+            },
+            {
+                $unwind: "$productDetails", // Deconstructs the productDetails array
+            },
+            {
+                $project: {
+                    _id: 0, // Exclude the _id field
+                    productId: "$_id",
+                    code: "$productDetails.code",
+                    name: "$productDetails.name",
+                    totalQuantity: 1, // Include the totalQuantity field
+                },
+            },
+            {
+                $sort: {
+                    totalQuantity: -1, // Sort by totalQuantity in descending order
+                },
+            },
+            {
+                $limit: 4, // Limit the results to 4
+            },
+        ]);
+
+        return results;
+    } catch (error) {
+        console.error("Error finding warehouses with stock details:", error);
+        throw error;
+    }
+};
+
+export const getMonthlyNetTotalByStatus = async () => {
+    try {
+        const results = await CustomerOrderRequest.aggregate([
+            {
+                $group: {
+                    _id: {
+                        year: { $year: "$createdAt" },
+                        month: { $month: "$createdAt" },
+                        isWarehouse: { $eq: ["$status", "WAREHOUSE"] },
+                    },
+                    netTotal: { $sum: "$netTotal" },
+                },
+            },
+            {
+                $group: {
+                    _id: {
+                        year: "$_id.year",
+                        month: "$_id.month",
+                    },
+                    totals: {
+                        $push: {
+                            isWarehouse: "$_id.isWarehouse",
+                            netTotal: "$netTotal",
+                        },
+                    },
+                },
+            },
+            {
+                $sort: {
+                    "_id.year": 1,
+                    "_id.month": 1,
+                },
+            },
+            {
+                $project: {
+                    _id: 0,
+                    year: "$_id.year",
+                    month: "$_id.month",
+                    warehouseNetTotal: {
+                        $arrayElemAt: [
+                            {
+                                $filter: {
+                                    input: "$totals",
+                                    as: "total",
+                                    cond: {
+                                        $eq: ["$$total.isWarehouse", true],
+                                    },
+                                },
+                            },
+                            0,
+                        ],
+                    },
+                    nonWarehouseNetTotal: {
+                        $arrayElemAt: [
+                            {
+                                $filter: {
+                                    input: "$totals",
+                                    as: "total",
+                                    cond: {
+                                        $eq: ["$$total.isWarehouse", false],
+                                    },
+                                },
+                            },
+                            0,
+                        ],
+                    },
+                },
+            },
+            {
+                $project: {
+                    year: 1,
+                    month: 1,
+                    warehouseNetTotal: {
+                        $ifNull: ["$warehouseNetTotal.netTotal", 0],
+                    },
+                    nonWarehouseNetTotal: {
+                        $ifNull: ["$nonWarehouseNetTotal.netTotal", 0],
+                    },
+                },
+            },
+        ]);
+
+        // Convert the aggregation result into the desired format
+        const formattedResults = results.map((result) => {
+            const monthNames = [
+                "January",
+                "February",
+                "March",
+                "April",
+                "May",
+                "June",
+                "July",
+                "August",
+                "September",
+                "October",
+                "November",
+                "December",
+            ];
+            return {
+                month: monthNames[result.month - 1], // Convert month number to month name
+                DirectSales: result.nonWarehouseNetTotal,
+                WarehoseSales: result.warehouseNetTotal,
+            };
         });
 
-    return warehouses;
+        return formattedResults;
+    } catch (error) {
+        console.error("Error in getMonthlyNetTotalByStatus:", error.message);
+        throw new Error(
+            `Error calculating monthly net total by status: ${error.message}`
+        );
+    }
 };
