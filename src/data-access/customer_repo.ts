@@ -62,3 +62,20 @@ export const searchCustomers = async (
         throw new Error(`Failed to search customers: ${error}`);
     }
 };
+
+/**
+ * Function to get a customer by email
+ * @param email - The email of the customer to retrieve
+ * @returns The customer document if found, otherwise null
+ */
+export const getCustomerByEmailRepo = async (email: string): Promise<ICustomer | null> => {
+  try {
+    // Find the customer by email
+    const customer = await Customer.findOne({ email });
+    return customer;
+  } catch (error) {
+    console.error(`Error getting customer by email: ${error.message}`);
+    throw new Error("Error getting customer by email");
+  }
+};
+

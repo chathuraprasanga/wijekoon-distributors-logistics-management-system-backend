@@ -55,6 +55,7 @@ import {
 } from "../controllers/employee_controller";
 import {
     createCustomerController,
+    customerLoginController,
     deleteCustomerController,
     getAllCustomersController,
     getCustomerByIdController,
@@ -249,6 +250,10 @@ export const routes = (app) => {
 
     app.post("/login", loginUserController);
     app.post("/forgot-password", forgotPasswordController);
+
+    // customer portal
+    app.post("/customer-login", customerLoginController);
+    app.post("/customer-forgot-password", customerLoginController);
 
     // app.get("*", getWelcomeMessage);
 };

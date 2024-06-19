@@ -5,6 +5,7 @@ import {
     updateCustomerService,
     deleteCustomerService,
     searchCustomersService,
+    loginCustomerService,
 } from "../services/cutomer_service";
 import { Request, Response } from "express";
 import { ICustomer } from "../models/customer_model";
@@ -94,6 +95,26 @@ export const searchCustomersController = async (
         const query = req.query;
         const customers = await searchCustomersService(query);
         res.json(customers);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const customerLoginController = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    try {
+        const { email, password } = req.body;
+        console.log(email, password);
+        const user = await loginCustomerService(email, password);
+        console.log("USER");
+        console.log(user);
+        if (user) {
+            res.status(200).json(user);
+        } else {
+            res.status(401).json({ message: "Invalid credentials" });
+        }
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

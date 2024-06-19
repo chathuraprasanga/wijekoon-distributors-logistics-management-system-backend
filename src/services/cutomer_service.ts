@@ -5,11 +5,16 @@ import {
     updateCustomer,
     deleteCustomer,
     searchCustomers,
+    getCustomerByEmailRepo,
 } from "../data-access/customer_repo";
 import { ICustomer } from "../models/customer_model";
 import bcrypt from "bcrypt";
 import nodemailer from "nodemailer";
-
+import {
+    generateAccessToken,
+    generateRefreshToken,
+    verifyRefreshToken,
+} from "../util/jwtUtil";
 export const createCustomerService = async (
     customerData: any
 ): Promise<ICustomer> => {
@@ -38,25 +43,25 @@ export const createCustomerService = async (
             return password;
         };
 
-        const passwordToHash = createPassword();
+        const passwordToHash = customerData?.password || createPassword();
 
-        // function for create email for user to inform his username and password
+        // function for create email for customer to inform his Customername and password
         // Hash the password before storing it
         const hashedPassword = await bcrypt.hash(passwordToHash, 10);
         const customerToCreate = { ...customerData, password: hashedPassword };
         const createdCustomer = await createCustomer(customerToCreate);
-        await sendEmailToUser(customerData, passwordToHash);
+        await sendEmailToCustomer(customerData, passwordToHash);
         return createdCustomer;
     } catch (error) {
         throw new Error(`Failed to create customer: ${error}`);
     }
 };
 
-const sendEmailToUser = async (customerData, password) => {
+const sendEmailToCustomer = async (customerData, password) => {
     const transporter = nodemailer.createTransport({
         service: "gmail",
         auth: {
-            user: "wijekoondistributor@gmail.com",
+            customer: "wijekoondistributor@gmail.com",
             pass: "hnzz wasj oiho lsrb",
         },
     });
@@ -69,7 +74,7 @@ const sendEmailToUser = async (customerData, password) => {
 
 Your account has been created successfully. Here are your login details:
 
-Username: ${customerData.email}
+Customername: ${customerData.email}
 Password: ${password}
 
 Best regards,
@@ -136,5 +141,54 @@ export const searchCustomersService = async (
         return await searchCustomers(query);
     } catch (error) {
         throw new Error(`Failed to search customers: ${error}`);
+    }
+};
+
+export const loginCustomerService = async (
+    email: string,
+    password: string
+): Promise<ICustomer | any> => {
+    try {
+        const customer = await getCustomerByEmailRepo(email);
+        console.log(customer);
+
+        if (!customer) {
+            throw new Error("Customer does not exist");
+        }
+
+        const isPasswordValid = await bcrypt.compare(
+            password,
+            customer.password
+        );
+
+        if (!isPasswordValid) {
+            throw new Error("Password is incorrect");
+        }
+
+        const accessToken = await generateAccessToken(customer);
+        const refreshToken = await generateRefreshToken(customer);
+        // console.log(token);
+        return {
+            message: "Login Succesfull",
+            accessToken: accessToken,
+            refreshToken: refreshToken,
+            customer: customer,
+        };
+    } catch (error) {
+        throw new Error(`Failed to login Customer: ${error}`);
+    }
+};
+
+export const getRefreshTokenService = async (oldToken: string) => {
+    try {
+        const decodedToken: any = verifyRefreshToken(oldToken);
+        const existingCustomer = await getCustomerById(decodedToken._id);
+        if (!existingCustomer) {
+            throw new Error("Customer not found");
+        }
+        const newToken = generateRefreshToken(existingCustomer);
+        return [newToken, existingCustomer];
+    } catch (error) {
+        throw new Error(`Failed to get Refresh Token: ${error}`);
     }
 };

@@ -6,7 +6,7 @@ export const generateAccessToken = async (user) => {
     const payload = {
         id: user._id,
         email: user.email,
-        role: user.role.name,
+        role: user?.role?.name || user?.role?.fullName,
     };
     return jwt.sign(payload, accessTokenSecret, { expiresIn: "24h" });
 };
@@ -15,7 +15,7 @@ export const generateRefreshToken = async (user) => {
     const payload = {
         id: user._id,
         email: user.email,
-        role: user.role.name,
+        role: user?.role?.name ||  user?.role?.fullName,
     };
     return jwt.sign(payload, refreshTokenSecret, { expiresIn: "24h" });
 };
