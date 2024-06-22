@@ -1,3 +1,5 @@
+import { CustomerOrder } from "../models/customer_order_model";
+import { CustomerOrderRequest } from "../models/customer_order_request_model";
 import {
     CustomerPayment,
     ICustomerPayment,
@@ -100,3 +102,61 @@ export const searchPaymentsByOrderIdOrName = async (
         throw error;
     }
 };
+
+export const getAllCustomerPaymentByCustomerIdRepo = async (
+    customerId: string
+): Promise<any[]> => {
+    try {
+        // Find customerOrderRequests associated with the customer
+        const customerOrderRequests = await CustomerOrderRequest.find({
+            customer: customerId,
+        });
+        
+        // Extract the IDs of the customerOrderRequests
+        const customerOrderRequestIds = customerOrderRequests.map(
+            (request) => request._id
+        );
+
+        // Find customerOrders associated with the customerOrderRequests
+        const customerOrders = await CustomerOrder.find({
+            customerOrderRequest: { $in: customerOrderRequestIds },
+        });
+        
+        // Extract the IDs of the customerOrders
+        const customerOrderIds = customerOrders.map(
+            (order) => order._id
+        );
+
+        // Find customerPayments associated with the customerOrders
+        const customerPayments = await CustomerPayment.find({
+            customerOrder: { $in: customerOrderIds },
+        })
+        .populate({
+            path: "customerOrder",
+            model: "CustomerOrder",
+            populate: {
+                path: "customerOrderRequest",
+                model: "CustomerOrderRequest",
+                populate: [
+                    {
+                        path: "order.product", // Populating the product within the order
+                        model: "Product",
+                    },
+                    {
+                        path: "customer", // Populating the customer
+                        model: "Customer",
+                    },
+                ],
+                strictPopulate: false, // Temporarily disable strict population checks
+            },
+        })
+        .exec();
+
+        return customerPayments;
+    } catch (error) {
+        throw new Error(`Error fetching customer payments: ${error.message}`);
+    }
+};
+
+
+

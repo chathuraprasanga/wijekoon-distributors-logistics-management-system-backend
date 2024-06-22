@@ -1,5 +1,5 @@
 import * as ChequeRepository from "../data-access/cheque_repo";
-import { findAllPendingChequeRepo } from "../data-access/cheque_repo";
+import { findAllPendingChequeRepo, getAllChequesByCustomerIdRepo } from "../data-access/cheque_repo";
 import { ICheques } from "../models/cheque_model";
 
 export const createChequeService = async (
@@ -67,5 +67,13 @@ export const getAllPendingChequesService = async (): Promise<ICheques[]> => {
         return pendingCheques;
     } catch (error) {
         throw new Error(`Failed to retrieve pending cheques: ${error.message}`);
+    }
+};
+
+export const getAllChequesByCustomerIdService = async (customerId: string): Promise<ICheques[]> => {
+    try {
+        return await getAllChequesByCustomerIdRepo(customerId);
+    } catch (error) {
+        throw new Error(`Service Error: Unable to retrieve cheques for customer ID ${customerId}: ${error.message}`);
     }
 };

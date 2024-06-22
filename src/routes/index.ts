@@ -4,6 +4,7 @@ import {
     getAllCheques,
     createCheque,
     getAllPendingChequesController,
+    getAllChequesByCustomerIdController,
 } from "../controllers/cheque_controller";
 import {
     findAllWarehousesController,
@@ -73,6 +74,7 @@ import {
     getAllCustomerOrderRequestsController,
     getConfirmedCustomerOrderRequestsController,
     getCustomerOrderRequestByIdController,
+    getCustomerOrderRequestsByCustomerIdController,
     updateCustomerOrderRequestController,
     updateCustomerOrderRequestStatusController,
 } from "../controllers/customer_order_request_controller";
@@ -80,11 +82,13 @@ import {
     createCustomerOrderController,
     getAllCustomerOrdersController,
     getCustomerOrderController,
+    getCustomerOrdersByCustomerIdController,
     updateCustomerOrderStatusController,
 } from "../controllers/customer_order_controller";
 import {
     createCustomerPaymentController,
     deleteCustomerPaymentController,
+    getAllCustomerPaymentByCustomerIdController,
     getAllCustomersPaymentsController,
     getCustomerPaymentByIdController,
     updateCustomerPaymentController,
@@ -254,6 +258,11 @@ export const routes = (app) => {
     // customer portal
     app.post("/customer-login", customerLoginController);
     app.post("/customer-forgot-password", customerLoginController);
+
+    app.get("/customerOrderRequestsById/:customerId", getCustomerOrderRequestsByCustomerIdController);
+    app.get("/customerOrdersById/:customerId", getCustomerOrdersByCustomerIdController);
+    app.get("/customerPaymentsById/:customerId", getAllCustomerPaymentByCustomerIdController);
+    app.get("/customerChequesByCustomerId/:customerId", getAllChequesByCustomerIdController);
 
     // app.get("*", getWelcomeMessage);
 };

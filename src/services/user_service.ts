@@ -106,7 +106,7 @@ const sendEmailToUser = async (userData, password) => {
 
 export const updateUserService = async (
     userId: string,
-    update: Partial<IUser>
+    update: any
 ): Promise<IUser | null> => {
     try {
         console.log("UPDATED USER");

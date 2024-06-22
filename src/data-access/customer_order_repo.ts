@@ -1,4 +1,5 @@
 import { CustomerOrder, ICustomerOrder } from "../models/customer_order_model";
+import { CustomerOrderRequest } from "../models/customer_order_request_model";
 
 // Create a new customer order
 export const createCustomerOrder = async (
@@ -95,5 +96,40 @@ export const searchCustomerOrders = async (
         }).exec();
     } catch (error) {
         throw new Error(error);
+    }
+};
+
+export const getCustomerOrdersByCustomerIdRepo = async (
+    customerId: string
+): Promise<ICustomerOrder[]> => {
+    try {
+        const customerOrderRequests = await CustomerOrderRequest.find({
+            customer: customerId,
+        });
+        const customerOrderRequestIds = customerOrderRequests.map(
+            (request) => request._id
+        );
+        const customerOrders = await CustomerOrder.find({
+            customerOrderRequest: { $in: customerOrderRequestIds },
+        })
+            .populate({
+                path: "customerOrderRequest",
+                model: "CustomerOrderRequest",
+                populate: [
+                    {
+                        path: "order.product", // Populating the product within the order
+                        model: "Product",
+                    },
+                    {
+                        path: "customer", // Populating the customer
+                        model: "Customer",
+                    },
+                ],
+                strictPopulate: false, // Temporarily disable strict population checks
+            })
+            .exec();
+        return customerOrders;
+    } catch (error) {
+        throw new Error(`Error fetching customer orders: ${error.message}`);
     }
 };

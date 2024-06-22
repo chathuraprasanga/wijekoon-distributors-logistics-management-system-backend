@@ -8,6 +8,7 @@ import {
     getLastIndexedOrderIdRepo,
     updateCustomerOrderRequestRepo,
     getAllCustomerOrderRequestStatusConfirmedRepo,
+    getCustomerOrderRequestsByCustomerIdRepo,
 } from "../data-access/customer_order_request_repo";
 import { ICustomerOrderRequest } from "../models/customer_order_request_model";
 
@@ -128,3 +129,17 @@ export const getAllCustomerOrderRequestStatusConfirmedService =
             );
         }
     };
+
+export const getCustomerOrderRequestsByCustomerIdService = async (
+    customerId: string
+): Promise<ICustomerOrderRequest[]> => {
+    try {
+        const customerOrderRequests =
+            await getCustomerOrderRequestsByCustomerIdRepo(customerId);
+        return customerOrderRequests;
+    } catch (error) {
+        throw new Error(
+            `Service error fetching customer order requests: ${error.message}`
+        );
+    }
+};

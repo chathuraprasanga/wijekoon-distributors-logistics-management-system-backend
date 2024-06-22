@@ -93,3 +93,30 @@ export const findAllPendingChequeRepo = async (): Promise<ICheques[]> => {
         })
         .exec();
 };
+
+/**
+ * Retrieve all cheques for a specific customer by customer ID.
+ * @param customerId - The ID of the customer.
+ * @returns A promise that resolves to an array of cheques associated with the specified customer.
+ */
+export const getAllChequesByCustomerIdRepo = async (
+    customerId: string
+): Promise<ICheques[]> => {
+    try {
+        const cheques = await Cheques.find({ customer: customerId })
+            .populate({
+                path: "customer",
+                model: "Customer", // Specify the model name here
+            })
+            .populate({
+                path: "order",
+                model: "CustomerOrder", // Specify the model name here
+            })
+            .exec();
+        return cheques;
+    } catch (error) {
+        throw new Error(
+            `Unable to retrieve cheques for customer ID ${customerId}: ${error.message}`
+        );
+    }
+};

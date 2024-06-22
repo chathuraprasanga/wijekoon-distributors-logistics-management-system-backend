@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import * as chequeService from "../services/cheque_service";
-import { getAllPendingChequesService } from "../services/cheque_service";
+import { getAllChequesByCustomerIdService, getAllPendingChequesService } from "../services/cheque_service";
 
 export const createCheque = async (
     req: Request,
@@ -103,3 +103,15 @@ export const getAllPendingChequesController = async (req: Request, res: Response
         res.status(500).json({ message: `Failed to retrieve pending cheques: ${error.message}` });
     }
 };
+
+export const getAllChequesByCustomerIdController = async (req: Request, res: Response) => {
+    const { customerId } = req.params;
+
+    try {
+        const cheques = await getAllChequesByCustomerIdService(customerId);
+        res.status(200).json(cheques);
+    } catch (error) {
+        throw new Error(`Controller Error: Unable to retrieve cheques for customer ID ${customerId}: ${error.message}`);
+    }
+};
+

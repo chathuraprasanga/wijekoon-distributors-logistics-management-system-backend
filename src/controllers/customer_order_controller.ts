@@ -5,6 +5,7 @@ import {
     getAllCustomerOrdersService,
     updateCustomerOrderStatusService,
     searchCustomerOrdersService,
+    getCustomerOrdersByCustomerIdService,
 } from "../services/customer_order_service";
 import { ICustomerOrder } from "../models/customer_order_model";
 
@@ -90,3 +91,14 @@ export const searchCustomerOrdersController = async (
         res.status(500).json({ error: error.message });
     }
 };
+
+export const getCustomerOrdersByCustomerIdController = async (req: Request, res: Response) => {
+    const { customerId } = req.params;
+    try {
+        const customerOrders = await getCustomerOrdersByCustomerIdService(customerId);
+        res.status(200).json(customerOrders);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+

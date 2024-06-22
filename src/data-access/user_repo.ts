@@ -14,6 +14,7 @@ export const updateUser = async (
     update: Partial<IUser>
 ): Promise<IUser | null> => {
     try {
+        console.log("USER", userId, update);
         return await User.findByIdAndUpdate(userId, update, { new: true });
     } catch (error) {
         throw new Error(`Failed to update user: ${error}`);
@@ -46,7 +47,9 @@ export const getAllUsers = async (): Promise<IUser[]> => {
 
 export const getUserByEmail = async (email: string): Promise<IUser | null> => {
     try {
-        return await User.findOne({ email }).populate("role", null, JobRole).exec();
+        return await User.findOne({ email })
+            .populate("role", null, JobRole)
+            .exec();
     } catch (error) {
         throw new Error(`Failed to get user by email: ${error}`);
     }

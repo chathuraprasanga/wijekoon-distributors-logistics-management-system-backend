@@ -8,8 +8,9 @@ import {
     getLastEmployee,
     getEmployeesWithJobRoleDriverRepo,
 } from "../data-access/employee_repo";
+import { getUserByEmail } from "../data-access/user_repo";
 import { IEmployee } from "../models/employee_model";
-import { createUserService } from "./user_service";
+import { createUserService, updateUserService } from "./user_service";
 
 export const createEmployeeService = async (data: any): Promise<IEmployee> => {
     try {
@@ -58,9 +59,37 @@ export const updateEmployeeByIdService = async (
     employeeData: Partial<IEmployee>
 ): Promise<IEmployee | null> => {
     try {
-        return updateEmployeeById(employeeId, employeeData);
+        // Fetch the user associated with the employee email
+        const userPayload = await getUserByEmail(employeeData.email);
+        if (!userPayload) {
+            throw new Error(`User with email ${employeeData.email} not found`);
+        }
+
+        // Prepare the new payload for updating the user
+        const newPayload = {
+            email: employeeData.email,
+            fullName: employeeData.name,
+            role: employeeData.jobRole.toString(), // Ensure role is a string
+            status: employeeData.status,
+            isSuperAdmin: userPayload.isSuperAdmin,
+            isFirstLogin: userPayload.isFirstLogin,
+        };
+
+        // Update the user
+        await updateUserService(userPayload._id, newPayload);
+
+        // Update the employee
+        const updatedEmployee = await updateEmployeeById(
+            employeeId,
+            employeeData
+        );
+        if (!updatedEmployee) {
+            throw new Error(`Employee with ID ${employeeId} not found`);
+        }
+
+        return updatedEmployee;
     } catch (error) {
-        throw new Error(`Could not update employee: ${error}`);
+        throw new Error(`Failed to update employee: ${error.message}`);
     }
 };
 

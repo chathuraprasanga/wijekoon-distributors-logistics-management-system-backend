@@ -10,6 +10,7 @@ import {
     deletePayment,
     getAllPaymentsRepo,
     searchPaymentsByOrderIdOrName,
+    getAllCustomerPaymentByCustomerIdRepo,
 } from "../data-access/customer_paymet_repo";
 import { getCustomerById } from "../data-access/customer_repo";
 
@@ -119,5 +120,20 @@ export const searchPaymentsService = async (
         return await searchPaymentsByOrderIdOrName(searchTerm);
     } catch (error) {
         throw error;
+    }
+};
+
+export const getAllCustomerPaymentByCustomerIdService = async (
+    customerId: string
+) => {
+    try {
+        const customerPayments = await getAllCustomerPaymentByCustomerIdRepo(
+            customerId
+        );
+        return customerPayments;
+    } catch (error) {
+        throw new Error(
+            `Error in getAllCustomerPaymentByCustomerIdService: ${error.message}`
+        );
     }
 };

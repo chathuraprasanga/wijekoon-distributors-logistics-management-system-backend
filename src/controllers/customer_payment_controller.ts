@@ -6,6 +6,7 @@ import {
     deletePaymentService,
     getAllPaymentsService,
     searchPaymentsService,
+    getAllCustomerPaymentByCustomerIdService,
 } from "../services/customer_payment_service";
 
 import { ICustomerPayment } from "../models/customer_payment_mode";
@@ -98,3 +99,14 @@ export const searchPaymentsController = async (
         res.status(500).json({ error: error.message });
     }
 };
+
+export const getAllCustomerPaymentByCustomerIdController = async (req: Request, res: Response) => {
+    const { customerId } = req.params;
+    try {
+        const customerPayments = await getAllCustomerPaymentByCustomerIdService(customerId);
+        res.status(200).json(customerPayments);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+

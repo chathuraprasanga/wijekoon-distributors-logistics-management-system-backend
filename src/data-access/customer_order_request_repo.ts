@@ -1,3 +1,4 @@
+import { Types } from "mongoose";
 import {
     CustomerOrderRequest,
     ICustomerOrderRequest,
@@ -149,5 +150,26 @@ export const updateCustomerOrderRequestRepo = async (
     } catch (error) {
         console.error("Failed to update customer order request:", error);
         throw new Error("Failed to update customer order request");
+    }
+};
+
+export const getCustomerOrderRequestsByCustomerIdRepo = async (
+    customerId: string
+): Promise<ICustomerOrderRequest[]> => {
+    try {
+        if (!Types.ObjectId.isValid(customerId)) {
+            throw new Error("Invalid customer ID");
+        }
+        const customerOrderRequests = await CustomerOrderRequest.find({
+            customer: customerId,
+        })
+            .populate({ path: "customer", model: "Customer" })
+            .populate({ path: "order.product", model: "Product" })
+            .exec();
+        return customerOrderRequests;
+    } catch (error) {
+        throw new Error(
+            `Error fetching customer order requests: ${error.message}`
+        );
     }
 };

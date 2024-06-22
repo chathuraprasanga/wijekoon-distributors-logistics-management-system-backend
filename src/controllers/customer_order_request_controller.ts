@@ -8,6 +8,7 @@ import {
     searchCustomerOrderRequestByCustomerService,
     updateCustomerOrderRequestService,
     getAllCustomerOrderRequestStatusConfirmedService,
+    getCustomerOrderRequestsByCustomerIdService,
 } from "../services/customer_order_request_service";
 import { ICustomerOrderRequest } from "../models/customer_order_request_model";
 
@@ -152,3 +153,15 @@ export const getConfirmedCustomerOrderRequestsController = async (
         });
     }
 };
+
+export const getCustomerOrderRequestsByCustomerIdController = async (req: Request, res: Response): Promise<void> => {
+    const { customerId } = req.params;
+    try {
+        const customerOrderRequests = await getCustomerOrderRequestsByCustomerIdService(customerId);
+        res.status(200).json(customerOrderRequests);
+    } catch (error) {
+        res.status(500).json({ message: `Controller error fetching customer order requests: ${error.message}` });
+    }
+};
+
+

@@ -5,6 +5,7 @@ import {
     getAllCustomerOrders,
     searchCustomerOrders,
     updateCustomerOrderStatusRepo,
+    getCustomerOrdersByCustomerIdRepo,
 } from "../data-access/customer_order_repo";
 import { ICustomerOrder } from "../models/customer_order_model";
 import { createChequeService } from "./cheque_service";
@@ -189,5 +190,14 @@ export const searchCustomerOrdersService = async (
         return await searchCustomerOrders(searchTerm);
     } catch (error) {
         throw new Error(error);
+    }
+};
+
+export const getCustomerOrdersByCustomerIdService = async (customerId: string) => {
+    try {
+        const customerOrders = await getCustomerOrdersByCustomerIdRepo(customerId);
+        return customerOrders;
+    } catch (error) {
+        throw new Error(`Error in getCustomerOrdersByCustomerIdService: ${error.message}`);
     }
 };

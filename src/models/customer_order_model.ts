@@ -86,23 +86,6 @@ const CustomerOrderSchema: Schema = new Schema<ICustomerOrder>(
                 message: errorEnum.INVALID_WAREHOUSE,
             },
         },
-        customer: {
-            type: Schema.Types.ObjectId,
-            ref: "customers",
-            validate: {
-                async validator(customers) {
-                    try {
-                        const count = await Customer.countDocuments({
-                            _id: customers,
-                        });
-                        return count === 1;
-                    } catch (e) {
-                        return false;
-                    }
-                },
-                message: errorEnum.INVALID_CUSTOMER,
-            },
-        },
     },
     {
         timestamps: true,
