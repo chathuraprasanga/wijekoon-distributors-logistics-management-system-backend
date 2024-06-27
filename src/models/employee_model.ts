@@ -33,7 +33,6 @@ const EmployeeSchema: Schema = new Schema<IEmployee>(
         },
         phoneSecondary: {
             type: Schema.Types.String,
-            required: [true, "Phone number is required"],
             unique: true,
         },
         email: {

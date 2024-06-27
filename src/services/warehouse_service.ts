@@ -60,6 +60,12 @@ export const updateWarehouseService = async (
         console.log(id);
         console.log(data);
 
+        const warehouse = await findWarehouseByIdRepo(id);
+        if (warehouse.status !== data.status) {
+            const update = await updateWarehouseRepo(id, data);
+            return update;
+        }
+
         // Correctly navigate to supplierOrderRequest
         const supplierOrderRequest =
             data.trip?.supplierOrder?.supplierOrderRequest;
@@ -67,10 +73,11 @@ export const updateWarehouseService = async (
             throw new Error("Supplier order request is missing");
         }
 
-        const updateStock = data.trip.supplierOrder.supplierOrderRequest.order.map((item) => ({
-            product: item.product._id,
-            quantity: parseInt(item.quantity),
-        }));
+        const updateStock =
+            data.trip.supplierOrder.supplierOrderRequest.order.map((item) => ({
+                product: item.product._id,
+                quantity: parseInt(item.quantity),
+            }));
         const type = data.type;
 
         const updatedWarehouse = await updateWarehouseStockService(

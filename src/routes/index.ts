@@ -5,6 +5,7 @@ import {
     createCheque,
     getAllPendingChequesController,
     getAllChequesByCustomerIdController,
+    updateChequeById,
 } from "../controllers/cheque_controller";
 import {
     findAllWarehousesController,
@@ -245,6 +246,8 @@ export const routes = (app) => {
     app.get("/expenses", getAllExpenses);
     app.post("/expense", createExpenses);
     app.put("/expense/:id", updateExpenses);
+
+    app.put("/cheque/:id", updateChequeById);
 
     app.get("/products", getAllProductsController);
     app.get("/supplierOrderRequests", getAllSupplierOrderRequestsController);
