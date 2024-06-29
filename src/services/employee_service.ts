@@ -103,9 +103,11 @@ export const deleteEmployeeByIdService = async (
     }
 };
 
-export const getAllEmployeesService = async (): Promise<IEmployee[]> => {
+export const getAllEmployeesService = async (
+    filters?
+): Promise<IEmployee[]> => {
     try {
-        return getAllEmployees();
+        return getAllEmployees(filters);
     } catch (error) {
         throw new Error(`Could not get all employees: ${error}`);
     }

@@ -57,11 +57,13 @@ export const updateCustomerOrderRequestStatusRepo = async (
     }
 };
 
-export const getAllCustomerOrderRequestsRepo = async (): Promise<
-    ICustomerOrderRequest[]
-> => {
+export const getAllCustomerOrderRequestsRepo = async (
+    filters?
+): Promise<ICustomerOrderRequest[]> => {
     try {
-        const allCustomerOrderRequests = await CustomerOrderRequest.find({})
+        const allCustomerOrderRequests = await CustomerOrderRequest.find(
+            filters
+        )
             .populate("customer")
             .populate({
                 path: "order.product",

@@ -47,9 +47,9 @@ export const searchTripByTripId = async (
     }
 };
 
-export const getAllTrips = async (): Promise<ITrip[]> => {
+export const getAllTrips = async (filters?): Promise<ITrip[]> => {
     try {
-        return await Trip.find()
+        return await Trip.find(filters)
             .populate({
                 path: "driver",
                 model: "Employee",

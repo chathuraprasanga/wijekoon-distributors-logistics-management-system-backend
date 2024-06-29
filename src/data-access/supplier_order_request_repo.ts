@@ -33,11 +33,9 @@ export const getSupplierOrderRequestById = async (
     }
 };
 
-export const getAllSupplierOrderRequests = async (): Promise<
-    ISupplierOrderRequest[]
-> => {
+export const getAllSupplierOrderRequests = async (filters?): Promise<ISupplierOrderRequest[]> => {
     try {
-        const allSupplierOrderRequests = await SupplierOrderRequest.find()
+        const allSupplierOrderRequests = await SupplierOrderRequest.find(filters)
             .populate({
                 path: "supplier",
                 model: "Supplier",
@@ -48,7 +46,7 @@ export const getAllSupplierOrderRequests = async (): Promise<
             });
         return allSupplierOrderRequests;
     } catch (error) {
-        throw new Error(error.message); // It's good practice to include.message to get the actual error message
+        throw new Error(error.message); // Handle errors by throwing with the actual error message
     }
 };
 
@@ -168,3 +166,14 @@ export const updateSupplierOrderRequestRepo = async (
         );
     }
 };
+
+export async function getAllSupplierOrderRequestsByProductId(productId: string): Promise<any[]> {
+    try {
+        const orders = await SupplierOrderRequest.find({
+            "order.product": productId // Matches orders where at least one product matches the given productId
+        }).exec();
+        return orders;
+    } catch (error) {
+        throw new Error(`Error fetching orders by productId: ${error.message}`);
+    }
+}

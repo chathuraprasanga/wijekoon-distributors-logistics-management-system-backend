@@ -6,6 +6,7 @@ import {
     deleteCustomerService,
     searchCustomersService,
     loginCustomerService,
+    changeCustomerPasswordService,
 } from "../services/cutomer_service";
 import { Request, Response } from "express";
 import { ICustomer } from "../models/customer_model";
@@ -115,6 +116,22 @@ export const customerLoginController = async (
         } else {
             res.status(401).json({ message: "Invalid credentials" });
         }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const changeCustomerPasswordController = async (req: Request, res: Response): Promise<void> => {
+    const { customerId, currentPassword, newPassword } = req.body;
+
+    if (!customerId || !currentPassword || !newPassword) {
+        res.status(400).json({ message: "Missing required fields" });
+        return;
+    }
+
+    try {
+        await changeCustomerPasswordService(customerId, currentPassword, newPassword);
+        res.status(200).json({ message: "Password changed successfully" });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

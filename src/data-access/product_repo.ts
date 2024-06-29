@@ -48,9 +48,9 @@ export async function getProductByIdRepo(
     }
 }
 
-export async function getAllProductsRepo(): Promise<IProduct[]> {
+export async function getAllProductsRepo(filters?): Promise<IProduct[]> {
     try {
-        const products = await Product.find().populate("supplier");
+        const products = await Product.find(filters).populate("supplier");
         return products;
     } catch (error) {
         throw error;

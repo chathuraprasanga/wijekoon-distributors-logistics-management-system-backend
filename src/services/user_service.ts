@@ -135,9 +135,9 @@ export const getUserByIdService = async (
     }
 };
 
-export const getAllUsersService = async (): Promise<IUser[]> => {
+export const getAllUsersService = async (filters?): Promise<IUser[]> => {
     try {
-        return await getAllUsers();
+        return await getAllUsers(filters);
     } catch (error) {
         throw new Error(`Failed to get all users: ${error}`);
     }
@@ -171,7 +171,7 @@ export const loginUserService = async (
             user: user,
         };
     } catch (error) {
-        throw new Error(`Failed to login user: ${error}`);
+        throw error;
     }
 };
 
@@ -196,7 +196,7 @@ export const forgotPasswordService = async (email: string) => {
         const user = await getUserByEmail(email);
         console.log(user);
         if (!user) {
-            throw new Error("User Doesnt exist check email");
+            throw new Error("User Doesnt exist, check email");
         }
         const username = user.email;
         const newPassword = createPassword();
@@ -207,7 +207,7 @@ export const forgotPasswordService = async (email: string) => {
         const updateToUser = { password };
         return await updateUserService(user._id, updateToUser);
     } catch (error) {
-        throw new Error(`Failed to Send email`);
+        throw error;
     }
 };
 
@@ -272,7 +272,35 @@ const sendForgotPasswordEmailToUser = async (username, password) => {
         await transporter.sendMail(mailOptions);
         console.log("Message sent to: %s", username);
     } catch (error) {
-        console.error("Error sending email: %s", error);
+        throw "Error sending email";
     }
 };
-// Add other necessary functions based on your application's needs
+
+export const changePasswordService = async (
+    userId: string,
+    currentPassword: string,
+    newPassword: string
+): Promise<IUser | null> => {
+    try {
+        const user = await getUserById(userId);
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+        const isPasswordValid = await bcrypt.compare(
+            currentPassword,
+            user.password
+        );
+        if (!isPasswordValid) {
+            throw new Error("Current password is incorrect");
+        }
+
+        const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+        const updateToUser = { password: hashedNewPassword };
+
+        return await updateUser(userId, updateToUser);
+    } catch (error) {
+        throw error;
+    }
+};
+

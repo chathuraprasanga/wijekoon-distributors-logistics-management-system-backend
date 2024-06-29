@@ -15,6 +15,8 @@ import {
     generateRefreshToken,
     verifyRefreshToken,
 } from "../util/jwtUtil";
+import { getAllCustomerOrderRequestsService } from "./customer_order_request_service";
+import { error } from "console";
 export const createCustomerService = async (
     customerData: any
 ): Promise<ICustomer> => {
@@ -53,7 +55,7 @@ export const createCustomerService = async (
         await sendEmailToCustomer(customerData, passwordToHash);
         return createdCustomer;
     } catch (error) {
-        throw new Error(`Failed to create customer: ${error}`);
+        throw error.message;
     }
 };
 
@@ -61,7 +63,7 @@ const sendEmailToCustomer = async (customerData, password) => {
     const transporter = nodemailer.createTransport({
         service: "gmail",
         auth: {
-            customer: "wijekoondistributor@gmail.com",
+            user: "wijekoondistributor@gmail.com",
             pass: "hnzz wasj oiho lsrb",
         },
     });
@@ -85,7 +87,8 @@ Wijekoon Distributors`,
         await transporter.sendMail(mailOptions);
         console.log("Message sent to: %s", customerData.email);
     } catch (error) {
-        console.error("Error sending email: %s", error);
+        console.log(error);
+        throw "Error sending email";
     }
 };
 
@@ -97,7 +100,7 @@ export const getCustomerByIdService = async (
         console.log(customerId);
         return await getCustomerById(customerId);
     } catch (error) {
-        throw new Error(`Failed to get customer: ${error}`);
+        throw error;
     }
 };
 
@@ -105,7 +108,7 @@ export const getAllCustomersService = async (): Promise<ICustomer[]> => {
     try {
         return await getAllCustomers();
     } catch (error) {
-        throw new Error(`Failed to get all customers: ${error}`);
+        throw error;
     }
 };
 
@@ -120,7 +123,7 @@ export const updateCustomerService = async (
         console.log(customerId);
         return await updateCustomer(customerId, payload);
     } catch (error) {
-        throw new Error(`Failed to update customer: ${error}`);
+        throw error;
     }
 };
 
@@ -128,9 +131,18 @@ export const deleteCustomerService = async (
     customerId: string
 ): Promise<void> => {
     try {
+        const customerOrders = await getAllCustomerOrderRequestsService({
+            customer: customerId,
+        });
+        if (customerOrders.length > 0) {
+            throw new Error(
+                "Cannot Delete Customer, Customer has Customer Order Requests"
+            );
+            return;
+        }
         await deleteCustomer(customerId);
     } catch (error) {
-        throw new Error(`Failed to delete customer: ${error}`);
+        throw error;
     }
 };
 
@@ -175,7 +187,7 @@ export const loginCustomerService = async (
             customer: customer,
         };
     } catch (error) {
-        throw new Error(`Failed to login Customer: ${error}`);
+        throw error;
     }
 };
 
@@ -190,5 +202,34 @@ export const getRefreshTokenService = async (oldToken: string) => {
         return [newToken, existingCustomer];
     } catch (error) {
         throw new Error(`Failed to get Refresh Token: ${error}`);
+    }
+};
+
+export const changeCustomerPasswordService = async (
+    customerId: string,
+    currentPassword: string,
+    newPassword: string
+): Promise<void> => {
+    try {
+        const customer = await getCustomerById(customerId);
+        if (!customer) {
+            throw new Error("Customer not found");
+        }
+
+        const isPasswordCorrect = await bcrypt.compare(
+            currentPassword,
+            customer.password
+        );
+        if (!isPasswordCorrect) {
+            throw new Error("Current password is incorrect");
+        }
+
+        const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+
+        console.log("CUSTOMER", customer);
+
+        await updateCustomer(customerId, { password: hashedNewPassword });
+    } catch (error) {
+        throw error;
     }
 };

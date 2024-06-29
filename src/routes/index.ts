@@ -56,6 +56,7 @@ import {
     updateEmployeeByIdController,
 } from "../controllers/employee_controller";
 import {
+    changeCustomerPasswordController,
     createCustomerController,
     customerLoginController,
     deleteCustomerController,
@@ -64,6 +65,7 @@ import {
     updateCustomerController,
 } from "../controllers/customer_ontroller";
 import {
+    changePasswordController,
     createUserController,
     forgotPasswordController,
     getAllUsersController,
@@ -136,7 +138,7 @@ export const routes = (app) => {
 
     app.get("/customerOrderRequests", getAllCustomerOrderRequestsController);
     app.get(
-        "/customerOrderRequestsConfiremed",
+        "/customerOrderRequestsConfirmed",
         getConfirmedCustomerOrderRequestsController
     );
     app.post("/customerOrderRequest", createCustomerOrderRequestController);
@@ -257,15 +259,29 @@ export const routes = (app) => {
 
     app.post("/login", loginUserController);
     app.post("/forgot-password", forgotPasswordController);
+    app.post("/change-password", changePasswordController);
 
     // customer portal
     app.post("/customer-login", customerLoginController);
     app.post("/customer-forgot-password", customerLoginController);
 
-    app.get("/customerOrderRequestsById/:customerId", getCustomerOrderRequestsByCustomerIdController);
-    app.get("/customerOrdersById/:customerId", getCustomerOrdersByCustomerIdController);
-    app.get("/customerPaymentsById/:customerId", getAllCustomerPaymentByCustomerIdController);
-    app.get("/customerChequesByCustomerId/:customerId", getAllChequesByCustomerIdController);
+    app.get(
+        "/customerOrderRequestsById/:customerId",
+        getCustomerOrderRequestsByCustomerIdController
+    );
+    app.get(
+        "/customerOrdersById/:customerId",
+        getCustomerOrdersByCustomerIdController
+    );
+    app.get(
+        "/customerPaymentsById/:customerId",
+        getAllCustomerPaymentByCustomerIdController
+    );
+    app.get(
+        "/customerChequesByCustomerId/:customerId",
+        getAllChequesByCustomerIdController
+    );
+    app.post("/changePassword", changeCustomerPasswordController);
 
     // app.get("*", getWelcomeMessage);
 };

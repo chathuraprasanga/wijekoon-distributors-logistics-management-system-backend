@@ -37,9 +37,9 @@ export const getUserById = async (userId: string): Promise<IUser | null> => {
     }
 };
 
-export const getAllUsers = async (): Promise<IUser[]> => {
+export const getAllUsers = async (filters?): Promise<IUser[]> => {
     try {
-        return await User.find().populate("role", null, JobRole).exec();
+        return await User.find(filters).populate("role", null, JobRole).exec();
     } catch (error) {
         throw new Error(`Failed to get all users: ${error}`);
     }

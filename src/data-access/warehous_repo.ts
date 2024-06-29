@@ -96,7 +96,9 @@ export const updateWarehouseStockRepo = async (
             }
 
             // Convert the productId string to an ObjectId before searching
-            const objectIdUpdateProduct = new mongoose.Types.ObjectId(update.product);
+            const objectIdUpdateProduct = new mongoose.Types.ObjectId(
+                update.product
+            );
 
             // Find the stock item by product ID
             let stockItem = warehouse.stockDetails.find((item) =>
@@ -160,3 +162,18 @@ export const getLastIndexWarehouseRepo =
             throw new Error(`Failed to get last index warehouse: ${error}`);
         }
     };
+
+export async function getAllWarehousesByProductId(
+    productId: string
+): Promise<any[]> {
+    try {
+        const warehouses = await Warehouse.find({
+            "stockDetails.product": productId, // Matches warehouses where there are stock details for the given productId
+        }).exec();
+        return warehouses;
+    } catch (error) {
+        throw new Error(
+            `Error fetching warehouses by productId: ${error.message}`
+        );
+    }
+}

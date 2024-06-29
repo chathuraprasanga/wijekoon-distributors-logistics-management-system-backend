@@ -13,69 +13,53 @@ import { Warehouse } from "../models/warehouse_model";
 
 export const calculateAllCustomerOrdersNetTotal = async () => {
     try {
-        // console.log("Starting calculation of all customer orders net total..."); // Debugging log at the start
-
-        // Use the aggregate method to group all documents by $summing the netTotal field
         const result = await CustomerOrder.aggregate([
             {
                 $group: {
-                    _id: null, // Group all documents together
-                    totalNetTotal: { $sum: "$netTotal" }, // Sum up the netTotal field
+                    _id: null,
+                    totalNetTotal: { $sum: "$netTotal" },
                 },
             },
         ]);
 
-        // console.log("Aggregation result:", result); // Debugging log to inspect the result of the aggregation
-
-        // Check if the result array is not empty and return the totalNetTotal
-        if (result && result.length > 0) {
-            // console.log("Returning total net total:", result[0].totalNetTotal); // Debugging log before returning the value
-            return result[0].totalNetTotal;
-        } else {
-            // console.log("No customer orders found."); // Debugging log if no orders are found
-            throw new Error("No customer orders found");
-        }
+        return result.length > 0 ? result[0].totalNetTotal : 0;
     } catch (error) {
         console.error(
             "Error calculating net total of all customer orders:",
             error
-        ); // Existing error logging
+        );
         throw error;
     }
 };
+
 export const calculateExpensesTotals = async () => {
     try {
-        // Step 1: Sum netTotal across all SupplierOrderRequest documents
         const supplierOrderRequestTotal = await SupplierOrderRequest.aggregate([
             {
                 $group: {
-                    _id: null, // Group all documents together
-                    totalNetTotal: { $sum: "$netTotal" }, // Sum up the netTotal field
+                    _id: null,
+                    totalNetTotal: { $sum: "$netTotal" },
                 },
             },
         ]);
 
-        // Extract the totalNetTotal from the result
         const supplierOrderRequestNetTotal =
             supplierOrderRequestTotal.length > 0
                 ? supplierOrderRequestTotal[0].totalNetTotal
                 : 0;
 
-        // Step 2: Sum totalAmount across all Expenses documents
         const expensesTotal = await Expenses.aggregate([
             {
                 $group: {
-                    _id: null, // Group all documents together
-                    totalExpenseAmount: { $sum: "$totalAmount" }, // Sum up the totalAmount field
+                    _id: null,
+                    totalExpenseAmount: { $sum: "$totalAmount" },
                 },
             },
         ]);
 
-        // Extract the totalExpenseAmount from the result
         const expensesTotalAmount =
             expensesTotal.length > 0 ? expensesTotal[0].totalExpenseAmount : 0;
 
-        // Return the calculated totals
         return {
             supplierOrderRequestNetTotal,
             expensesTotalAmount,
@@ -86,129 +70,116 @@ export const calculateExpensesTotals = async () => {
     }
 };
 
-// Assuming CustomerPayment is imported or defined elsewhere in your project
 export const getTotalOutstandingAmount = async (): Promise<number> => {
     const totalOutstanding = await CustomerPayment.aggregate([
         {
             $group: {
-                _id: null, // Grouping all documents together
-                totalOutstanding: { $sum: "$outstanding" }, // Summing up the outstanding amounts
+                _id: null,
+                totalOutstanding: { $sum: "$outstanding" },
             },
         },
     ]);
 
-    // Since the aggregation returns an array, we need to extract the first element's totalOutstanding field
     return totalOutstanding.length > 0
         ? totalOutstanding[0].totalOutstanding
         : 0;
 };
 
-// Assuming SupplierPayment is imported or defined elsewhere in your project
 export const getTotalOutstandingAmountForSuppliers =
     async (): Promise<number> => {
         const totalOutstanding = await SupplierPayment.aggregate([
             {
                 $group: {
-                    _id: null, // Grouping all documents together
-                    totalOutstanding: { $sum: "$outstanding" }, // Summing up the outstanding amounts
+                    _id: null,
+                    totalOutstanding: { $sum: "$outstanding" },
                 },
             },
         ]);
 
-        // Since the aggregation returns an array, we need to extract the first element's totalOutstanding field
         return totalOutstanding.length > 0
             ? totalOutstanding[0].totalOutstanding
             : 0;
     };
 
-// Assuming Customer is imported or defined elsewhere in your project
 export const countCustomers = async (): Promise<number> => {
     const count = await Customer.countDocuments({});
     return count;
 };
 
-// Assuming Customer is imported or defined elsewhere in your project
 export const countSuppliers = async (): Promise<number> => {
     const count = await Supplier.countDocuments({});
     return count;
 };
 
-// Assuming Customer is imported or defined elsewhere in your project
 export const countEmployees = async (): Promise<number> => {
     const count = await Employee.countDocuments({});
     return count;
 };
 
-// Assuming Customer is imported or defined elsewhere in your project
 export const countVehicles = async (): Promise<number> => {
     const count = await Vehicle.countDocuments({});
     return count;
 };
 
-// Assuming Customer is imported or defined elsewhere in your project
 export const countCustomerOrderRequests = async (): Promise<number> => {
     const count = await CustomerOrderRequest.countDocuments({});
     return count;
 };
 
-// Assuming Customer is imported or defined elsewhere in your project
 export const countCustomerOrders = async (): Promise<number> => {
     const count = await CustomerOrder.countDocuments({});
     return count;
 };
 
-// Assuming Customer is imported or defined elsewhere in your project
 export const countSupplierOrderRequests = async (): Promise<number> => {
     const count = await SupplierOrderRequest.countDocuments({});
     return count;
 };
 
-// Assuming Customer is imported or defined elsewhere in your project
 export const countSupplierOrders = async (): Promise<number> => {
     const count = await SupplierOrder.countDocuments({});
     return count;
 };
 
-// Assuming Warehouse is imported or defined elsewhere in your project
 export const findWarehousesWithStockDetails = async (): Promise<any[]> => {
     try {
         const results = await Warehouse.aggregate([
             {
-                $unwind: "$stockDetails", // Deconstructs the stockDetails array
+                $unwind: "$stockDetails",
             },
             {
                 $group: {
-                    _id: "$stockDetails.product", // Group by product ID
-                    totalQuantity: { $sum: "$stockDetails.quantity" }, // Sum the quantities
+                    _id: "$stockDetails.product",
+                    totalQuantity: { $sum: "$stockDetails.quantity" },
                 },
             },
             {
                 $lookup: {
-                    from: "products", // The products collection
-                    localField: "_id", // The product ID in the stockDetails
-                    foreignField: "_id", // The product ID in the products collection
-                    as: "productDetails", // Alias for the joined data
+                    from: "products",
+                    localField: "_id",
+                    foreignField: "_id",
+                    as: "productDetails",
                 },
             },
             {
-                $unwind: "$productDetails", // Deconstructs the productDetails array
+                $unwind: "$productDetails",
             },
             {
                 $project: {
-                    _id: 0, // Exclude the _id field
+                    _id: 0,
                     productId: "$_id",
                     code: "$productDetails.code",
                     name: "$productDetails.name",
-                    totalQuantity: 1, // Include the totalQuantity field
+                    totalQuantity: 1,
                 },
             },
             {
                 $sort: {
-                    totalQuantity: -1, // Sort by totalQuantity in descending order
+                    totalQuantity: -1,
                 },
             },
             {
-                $limit: 4, // Limit the results to 4
+                $limit: 4,
             },
         ]);
 
@@ -301,7 +272,6 @@ export const getMonthlyNetTotalByStatus = async () => {
             },
         ]);
 
-        // Convert the aggregation result into the desired format
         const formattedResults = results.map((result) => {
             const monthNames = [
                 "January",
@@ -318,7 +288,7 @@ export const getMonthlyNetTotalByStatus = async () => {
                 "December",
             ];
             return {
-                month: monthNames[result.month - 1], // Convert month number to month name
+                month: monthNames[result.month - 1],
                 DirectSales: result.nonWarehouseNetTotal,
                 WarehoseSales: result.warehouseNetTotal,
             };

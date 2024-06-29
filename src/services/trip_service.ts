@@ -49,9 +49,9 @@ export const searchTripByTripId = async (
     }
 };
 
-export const getAllTrips = async (): Promise<ITrip[]> => {
+export const getAllTrips = async (filters?): Promise<ITrip[]> => {
     try {
-        return await TripRepository.getAllTrips();
+        return await TripRepository.getAllTrips(filters);
     } catch (error) {
         throw new Error("Could not get all trips");
     }

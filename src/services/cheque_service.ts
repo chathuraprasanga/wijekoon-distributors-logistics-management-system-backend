@@ -74,6 +74,6 @@ export const getAllChequesByCustomerIdService = async (customerId: string): Prom
     try {
         return await getAllChequesByCustomerIdRepo(customerId);
     } catch (error) {
-        throw new Error(`Service Error: Unable to retrieve cheques for customer ID ${customerId}: ${error.message}`);
+        throw(`Service Error: Unable to retrieve cheques for customer ID ${customerId}: ${error.message}`);
     }
 };

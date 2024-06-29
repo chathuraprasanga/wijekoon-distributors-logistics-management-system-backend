@@ -66,12 +66,13 @@ export const updateCustomerOrderRequestStatusService = async (
     }
 };
 
-export const getAllCustomerOrderRequestsService = async (): Promise<
-    ICustomerOrderRequest[]
-> => {
+export const getAllCustomerOrderRequestsService = async (
+    filters?
+): Promise<ICustomerOrderRequest[]> => {
     try {
-        const allCustomerOrderRequests =
-            await getAllCustomerOrderRequestsRepo();
+        const allCustomerOrderRequests = await getAllCustomerOrderRequestsRepo(
+            filters
+        );
         return allCustomerOrderRequests;
     } catch (error) {
         throw new Error("Failed to get all customer order requests");

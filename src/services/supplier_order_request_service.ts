@@ -52,11 +52,9 @@ export const getSupplierOrderRequestByIdService = async (
     }
 };
 
-export const getAllSupplierOrderRequestsService = async (): Promise<
-    ISupplierOrderRequest[]
-> => {
+export const getAllSupplierOrderRequestsService = async (filters?): Promise<ISupplierOrderRequest[]> => {
     try {
-        const allSupplierOrderRequests = await getAllSupplierOrderRequests();
+        const allSupplierOrderRequests = await getAllSupplierOrderRequests(filters);
         return allSupplierOrderRequests;
     } catch (error) {
         throw new Error(error);

@@ -7,6 +7,7 @@ import {
     getAllSuppliersRepo,
 } from "../data-access/supplier_repo"; // Adjust the import path as needed
 import { ISupplier } from "../models/supplier_model"; // Adjust the import path as needed
+import { getAllProductsService } from "./product_service";
 
 export const createSupplierService = async (
     supplierData: any
@@ -41,9 +42,13 @@ export const updateSupplierService = async (
 
 export const deleteSupplierService = async (id: string): Promise<void> => {
     try {
+        const products = await getAllProductsService({ supplier: id });
+        if (products.length > 0) {
+            throw new Error("Cannot Delete Supplier, Customer has linked data")
+        }
         await deleteSupplierRepo(id);
     } catch (error) {
-        throw new Error(`Failed to delete supplier: ${error.message}`);
+        throw error;
     }
 };
 

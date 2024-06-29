@@ -8,7 +8,9 @@ import {
     loginUserService,
     getRefreshTokenService,
     forgotPasswordService,
+    changePasswordService,
 } from "../services/user_service";
+import { getUserByEmail } from "../data-access/user_repo";
 
 export const createUserController = async (
     req: Request,
@@ -133,6 +135,40 @@ export const forgotPasswordController = async (req: Request, res: Response) => {
         const updatedUser = await forgotPasswordService(email);
         console.log(updatedUser);
         res.status(200).json(updatedUser);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const changePasswordController = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    const { currentPassword, newPassword, email } = req.body;
+
+    const user = await getUserByEmail(email);
+
+    const userId = user._id;
+
+    if (!userId || !currentPassword || !newPassword) {
+        res.status(400).json({
+            message:
+                "User ID, current password, and new password are required.",
+        });
+        return;
+    }
+
+    try {
+        const updatedUser = await changePasswordService(
+            userId,
+            currentPassword,
+            newPassword
+        );
+        if (updatedUser) {
+            res.status(200).json({ message: "Password changed successfully." });
+        } else {
+            res.status(500).json({ message: "Failed to change password." });
+        }
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

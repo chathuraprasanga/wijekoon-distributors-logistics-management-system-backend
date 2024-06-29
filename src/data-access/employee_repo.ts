@@ -49,9 +49,9 @@ export const deleteEmployeeById = async (employeeId: string): Promise<void> => {
     }
 };
 
-export const getAllEmployees = async (): Promise<IEmployee[]> => {
+export const getAllEmployees = async (filters?): Promise<IEmployee[]> => {
     try {
-        const employees = await Employee.find()
+        const employees = await Employee.find(filters)
             .populate({ path: "jobRole", model: "JobRole" })
             .exec();
         return employees;

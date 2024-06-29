@@ -14,6 +14,7 @@ import {
     updateVehicleByIdRepo,
     findAllActiveVehicleLorryRepo,
 } from "../data-access/vehicle_repo";
+import { getAllTrips } from "./trip_service";
 
 // Create a new vehicle
 export const createVehicleService = async (vehicle: any): Promise<IVehicle> => {
@@ -136,9 +137,17 @@ export const searchVehiclesByCapacityService = async (
 
 export const deleteVehicleByIdService = async (id: string): Promise<void> => {
     try {
+        const trips = await getAllTrips({ vehicle: id });
+
+        if (trips.length > 0) {
+            throw new Error(
+                "Cannot Delete Vehicle, Vehicle has linked to data"
+            );
+            return;
+        }
         await deleteVehicleByIdRepo(id);
     } catch (error) {
-        throw new Error(`Failed to delete vehicle by ID: ${error}`);
+        throw error;
     }
 };
 

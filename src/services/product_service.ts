@@ -6,7 +6,10 @@ import {
     getAllProductsRepo,
     searchProductsRepo,
 } from "../data-access/product_repo";
+import { getAllSupplierOrderRequestsByProductId } from "../data-access/supplier_order_request_repo";
+import { getAllWarehousesByProductId } from "../data-access/warehous_repo";
 import { IProduct } from "../models/product_model";
+import { getAllSupplierOrderRequestsService } from "./supplier_order_request_service";
 
 export const createProductService = async (
     productData: IProduct
@@ -38,7 +41,20 @@ export const deleteProductService = async (
     productId: string
 ): Promise<boolean> => {
     try {
-        return await deleteProductRepo(productId);
+        const supplierOrders = await getAllSupplierOrderRequestsByProductId(
+            productId
+        );
+
+        const warehouses = await getAllWarehousesByProductId(productId);
+
+        console.log("SUPPLIER ORDERS", supplierOrders);
+
+        if (supplierOrders.length > 0 || warehouses.length > 0) {
+            throw new Error("Cannot Delete Product, Product has linked data");
+        }
+
+        // return await deleteProductRepo(productId);
+        return true;
     } catch (error) {
         throw error;
     }
@@ -54,9 +70,9 @@ export const getProductByIdService = async (
     }
 };
 
-export const getAllProductsService = async (): Promise<IProduct[]> => {
+export const getAllProductsService = async (filters?): Promise<IProduct[]> => {
     try {
-        return await getAllProductsRepo();
+        return await getAllProductsRepo(filters);
     } catch (error) {
         throw error;
     }
