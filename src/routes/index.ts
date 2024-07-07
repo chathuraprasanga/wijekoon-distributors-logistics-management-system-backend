@@ -123,6 +123,11 @@ import {
     updateExpenses,
 } from "../controllers/expenses_controller";
 import { getSummaryDetailsController } from "../controllers/dashboard_controller";
+import {
+    createEmail,
+    getAllEmails,
+    updateEmail,
+} from "../controllers/email_controller";
 
 export const routes = (app) => {
     app.get("/", getWelcomeMessage);
@@ -261,6 +266,9 @@ export const routes = (app) => {
     app.post("/forgot-password", forgotPasswordController);
     app.post("/change-password", changePasswordController);
 
+    app.get("/emails", getAllEmails);
+    app.put("/email/:id", updateEmail);
+
     // customer portal
     app.post("/customer-login", customerLoginController);
     app.post("/customer-forgot-password", customerLoginController);
@@ -282,6 +290,7 @@ export const routes = (app) => {
         getAllChequesByCustomerIdController
     );
     app.post("/changePassword", changeCustomerPasswordController);
+    app.post("/send-email", createEmail);
 
     // app.get("*", getWelcomeMessage);
 };

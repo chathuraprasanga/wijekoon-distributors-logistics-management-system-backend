@@ -9,7 +9,7 @@ export const createCustomer = async (
         await customer.save();
         return customer;
     } catch (error) {
-        throw new Error(`Failed to create customer: ${error}`);
+        throw error;
     }
 };
 
@@ -19,7 +19,7 @@ export const getCustomerById = async (
     try {
         return await Customer.findById(customerId).exec();
     } catch (error) {
-        throw new Error(`Failed to get customer: ${error}`);
+        throw error;
     }
 };
 
@@ -27,7 +27,7 @@ export const getAllCustomers = async (): Promise<ICustomer[]> => {
     try {
         return await Customer.find().exec();
     } catch (error) {
-        throw new Error(`Failed to get all customers: ${error}`);
+        throw error;
     }
 };
 
@@ -41,7 +41,7 @@ export const updateCustomer = async (
         }).exec();
     } catch (error) {
         // Assuming the error has a 'message' property that provides useful details
-        throw new Error(`Failed to update customer: ${error.message}`);
+        throw error;
     }
 };
 
@@ -49,7 +49,7 @@ export const deleteCustomer = async (customerId: string): Promise<void> => {
     try {
         await Customer.findByIdAndDelete(customerId).exec();
     } catch (error) {
-        throw new Error(`Failed to delete customer: ${error}`);
+        throw error;
     }
 };
 
@@ -59,7 +59,7 @@ export const searchCustomers = async (
     try {
         return await Customer.find(query).exec();
     } catch (error) {
-        throw new Error(`Failed to search customers: ${error}`);
+        throw error;
     }
 };
 
@@ -79,3 +79,20 @@ export const getCustomerByEmailRepo = async (email: string): Promise<ICustomer |
   }
 };
 
+/**
+ * Function to get a customer by phone
+ * @param phone - The phone number of the customer to retrieve
+ * @returns The customer document if found, otherwise null
+ */
+export const getCustomerByPhoneRepo = async (phone: string): Promise<ICustomer | null> => {
+    try {
+      // Find the customer by phone
+      const customer = await Customer.findOne({ phone });
+      return customer;
+    } catch (error) {
+      console.error(`Error getting customer by phone: ${error.message}`);
+      throw new Error("Error getting customer by phone");
+    }
+  };
+  
+  

@@ -53,8 +53,8 @@ export const deleteProductService = async (
             throw new Error("Cannot Delete Product, Product has linked data");
         }
 
-        // return await deleteProductRepo(productId);
-        return true;
+        return await deleteProductRepo(productId);
+        // return true;
     } catch (error) {
         throw error;
     }

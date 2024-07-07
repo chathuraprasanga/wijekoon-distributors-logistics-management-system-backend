@@ -6,6 +6,7 @@ import {
     deleteCustomer,
     searchCustomers,
     getCustomerByEmailRepo,
+    getCustomerByPhoneRepo,
 } from "../data-access/customer_repo";
 import { ICustomer } from "../models/customer_model";
 import bcrypt from "bcrypt";
@@ -16,11 +17,18 @@ import {
     verifyRefreshToken,
 } from "../util/jwtUtil";
 import { getAllCustomerOrderRequestsService } from "./customer_order_request_service";
-import { error } from "console";
+
 export const createCustomerService = async (
     customerData: any
 ): Promise<ICustomer> => {
     try {
+        const userByEmail = await getCustomerByEmailRepo(customerData.email);
+        const userByPhone = await getCustomerByPhoneRepo(customerData.phone);
+        if (userByEmail || userByPhone) {
+            throw new Error("User Already Exist, Check users email and phone");
+            return;
+        }
+
         const createPassword = () => {
             const generateRandomCharacter = (charset) => {
                 return charset[Math.floor(Math.random() * charset.length)];
@@ -52,10 +60,12 @@ export const createCustomerService = async (
         const hashedPassword = await bcrypt.hash(passwordToHash, 10);
         const customerToCreate = { ...customerData, password: hashedPassword };
         const createdCustomer = await createCustomer(customerToCreate);
-        await sendEmailToCustomer(customerData, passwordToHash);
+        if (!customerData.password) {
+            await sendEmailToCustomer(customerData, passwordToHash);
+        }
         return createdCustomer;
     } catch (error) {
-        throw error.message;
+        throw error;
     }
 };
 
@@ -121,6 +131,23 @@ export const updateCustomerService = async (
         console.log("CUSTOMER UPDATE");
         console.log(update);
         console.log(customerId);
+
+        const customer = await getCustomerByIdService(customerId);
+
+        if (
+            payload.email !== customer.email ||
+            payload.phone !== customer.phone
+        ) {
+            const userByEmail = await getCustomerByEmailRepo(payload.email);
+            const userByPhone = await getCustomerByPhoneRepo(payload.phone);
+            if (userByEmail || userByPhone) {
+                throw new Error(
+                    "Email or Phone Already Exist, Check email and phone"
+                );
+                return;
+            }
+        }
+
         return await updateCustomer(customerId, payload);
     } catch (error) {
         throw error;

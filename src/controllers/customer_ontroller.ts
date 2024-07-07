@@ -20,6 +20,7 @@ export const createCustomerController = async (
         console.log("CREATE CUSTOMER");
         console.log(customerData);
         const createToCustomer = { ...customerData, status: "ACTIVE" };
+        console.log(createToCustomer);
         const newCustomer = await createCustomerService(createToCustomer);
         res.status(201).json(newCustomer);
     } catch (error) {
@@ -121,16 +122,22 @@ export const customerLoginController = async (
     }
 };
 
-export const changeCustomerPasswordController = async (req: Request, res: Response): Promise<void> => {
+export const changeCustomerPasswordController = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
     const { customerId, currentPassword, newPassword } = req.body;
 
     if (!customerId || !currentPassword || !newPassword) {
         res.status(400).json({ message: "Missing required fields" });
         return;
     }
-
     try {
-        await changeCustomerPasswordService(customerId, currentPassword, newPassword);
+        await changeCustomerPasswordService(
+            customerId,
+            currentPassword,
+            newPassword
+        );
         res.status(200).json({ message: "Password changed successfully" });
     } catch (error) {
         res.status(500).json({ message: error.message });

@@ -44,7 +44,7 @@ export const deleteSupplierService = async (id: string): Promise<void> => {
     try {
         const products = await getAllProductsService({ supplier: id });
         if (products.length > 0) {
-            throw new Error("Cannot Delete Supplier, Customer has linked data")
+            throw new Error("Cannot Delete Supplier, Supplier has linked data")
         }
         await deleteSupplierRepo(id);
     } catch (error) {
